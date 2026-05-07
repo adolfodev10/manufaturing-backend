@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id_user              String                 @id @default(uuid())
+  name                 String
+  email                String                 @unique(map: "Users_email_key")
+  phone_number         String?                @unique(map: "Users_phone_number_key")
+  senha                String
+  avatar               String?
+  born                 DateTime
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt
+  user_status          UserStatus             @default(ACTIVO)
+  role                 Role                   @default(OPERADOR)
+  perfis               UserPerfil[]
+
+  @@map("users")
+}
+
+model Logs {
+  id          String   @id @default(uuid())
+  timestamp   DateTime @default(now())
+  level       String
+  action      String
+  user        String
+  user_id     String?
+  details     String   @db.Text
+  ip          String?
+  resource    String
+  resource_id String?
+  old_value   String?  @db.LongText
+  new_value   String?  @db.LongText
+  duration    Int?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("logs")
+}
+
+model Backups {
+  id                String    @id @default(uuid())
+  name              String
+  filename          String
+  size              BigInt
+  type              String
+  status            String
+  created_at        DateTime  @default(now())
+  completed_at      DateTime?
+  tables            String    @db.LongText
+  records_count     Int       @default(0)
+  location          String
+  checksum          String?
+  compression_ratio Float?
+  duration          Int?
+  error             String?
+  created_by        String?
+  updated_at        DateTime  @updatedAt
+
+  @@map("backups")
+}
+
+model Perfil {
+  id             String       @id @default(uuid())
+  nome           String       @unique
+  descricao      String
+  nivel          Int          @default(1)
+  permissoes     String       @db.LongText
+  usuarios_count Int          @default(0)
+  is_default     Boolean      @default(false)
+  is_system      Boolean      @default(false)
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+  users          UserPerfil[]
+
+  @@map("perfil")
+}
+
+model Permissao {
+  id         String   @id @default(uuid())
+  nome       String
+  descricao  String
+  modulo     String
+  acao       String
+  recurso    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([modulo, acao, recurso])
+  @@map("permissoes")
+}
+
+model UserPerfil {
+  id         String   @id @default(uuid())
+  user_id    String
+  perfil_id  String
+  created_at DateTime @default(now())
+  perfil     Perfil   @relation(fields: [perfil_id], references: [id], onDelete: Cascade)
+  user       Users    @relation(fields: [user_id], references: [id_user], onDelete: Cascade)
+
+  @@unique([user_id, perfil_id])
+  @@index([perfil_id], map: "user_perfis_perfil_id_fkey")
+  @@map("user_perfis")
+}
+
+model BackupConfig {
+  id                 String    @id @default(uuid())
+  enabled            Boolean   @default(true)
+  frequency          String
+  time               String
+  dayOfWeek          Int?
+  dayOfMonth         Int?
+  retention_days     Int       @default(30)
+  tables             String    @db.LongText
+  compression        Boolean   @default(true)
+  encryption         Boolean   @default(false)
+  notification_email String?
+  last_run           DateTime?
+  next_run           DateTime?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  @@map("backup_config")
+}
+
+model clients {
+  id_client  String     @id
+  name       String
+  telefone   String
+  created_at DateTime   @default(now())
+  updated_at DateTime
+  invoices   invoices[]
+}
+
+model estoque {
+  id_estoque    String         @id
+  name          String
+  created_at    DateTime       @default(now())
+  updated_at    DateTime
+  date_validate String
+  price         String
+  quantity      String
+  estado        estoque_estado @default(NAO_VENDIDO)
+  category      String?
+}
+
+model invoices {
+  id_invoice String            @id
+  client_id  String
+  product_id String
+  price      String
+  date       DateTime
+  created_at DateTime          @default(now())
+  updated_at DateTime
+  approval   invoices_approval @default(NAO_PAGAS)
+  clients    clients           @relation(fields: [client_id], references: [id_client], onDelete: Cascade, map: "Invoices_client_id_fkey")
+  products   products          @relation(fields: [product_id], references: [id_product], onDelete: Cascade, map: "Invoices_product_id_fkey")
+
+  @@index([client_id], map: "Invoices_client_id_fkey")
+  @@index([product_id], map: "Invoices_product_id_fkey")
+}
+
+model products {
+  id_product    String                 @id
+  name_product  String
+  logo          String?
+  created_at    DateTime               @default(now())
+  updated_at    DateTime
+  date_validate String
+  price         String
+  quantity      String
+  methodPayment products_methodPayment @default(CACHE)
+  totalLucro    String?
+  estado        products_estado        @default(NAO_VENDIDO)
+  category      String?
+  invoices      invoices[]
+}
+
+model venda {
+  id            String              @id
+  name_product  String?
+  methodPayment venda_methodPayment @default(CACHE)
+  date_validate DateTime
+  price         String
+  quantity      String
+  estado        venda_estado        @default(NAO_VENDIDO)
+  created_at    DateTime            @default(now())
+  updated_at    DateTime
+  date_venda    DateTime?           @default(now())
+  category      String?
+}
+
+enum Role {
+  ADMINISTRADOR
+  OPERADOR
+}
+
+enum UserStatus {
+  ACTIVO
+  INATIVO
+}
+
+enum venda_methodPayment {
+  MULTICAIXA_EXPRESS
+  CACHE
+  TPA
+}
+
+enum venda_estado {
+  VENDIDO
+  NAO_VENDIDO
+  EXPIRADO
+  VENDENDO
+}
+
+enum estoque_estado {
+  NAO_VENDIDO
+  EXPIRADO
+}
+
+enum invoices_approval {
+  PAGAS
+  NAO_PAGAS
+}
+
+enum products_methodPayment {
+  MULTICAIXA_EXPRESS
+  CACHE
+  TPA
+}
+
+enum products_estado {
+  VENDIDO
+  NAO_VENDIDO
+  EXPIRADO
+  VENDENDO
+}
