@@ -6,7 +6,7 @@ exports.createVendaSchema = zod_1.z.object({
     id: zod_1.z.string().uuid(),
     name_product: zod_1.z.string().optional(),
     description: zod_1.z.string().optional(),
-    methodPayment: zod_1.z.enum(["MULTICAIXA_EXPRESS", "CACHE", "TPA"]),
+    methodPayment: zod_1.z.enum(["MISTO", "CACHE", "TPA"]),
     date_validate: zod_1.z.string(),
     price: zod_1.z.string(),
     quantity: zod_1.z.string().optional(),

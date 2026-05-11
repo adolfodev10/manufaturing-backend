@@ -249,7 +249,7 @@ enum UserStatus {
 }
 
 enum venda_methodPayment {
-  MULTICAIXA_EXPRESS
+  MISTO
   CACHE
   TPA
 }
@@ -272,7 +272,7 @@ enum invoices_approval {
 }
 
 enum products_methodPayment {
-  MULTICAIXA_EXPRESS
+  MISTO
   CACHE
   TPA
 }

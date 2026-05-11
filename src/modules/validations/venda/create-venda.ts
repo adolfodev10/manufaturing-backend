@@ -3,7 +3,7 @@ import { z } from "zod";
 export const createVendaSchema = z.object({
   name_product: z.string().min(1, "Nome do produto é obrigatório"),
   category: z.string().optional(),
-  methodPayment: z.enum(["MULTICAIXA_EXPRESS", "CACHE", "TPA"]),
+  methodPayment: z.enum(["MISTO", "CACHE", "TPA"]),
   date_validate: z.string(),
   price: z.string(),
   quantity: z.string().optional(),
