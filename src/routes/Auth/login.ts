@@ -29,6 +29,8 @@ export const Login = async (app: FastifyInstance) => {
         },
       });
 
+      console.log("🍀User: ", user);
+
       if (!user) {
         const duration = Date.now() - startTime;
 
@@ -44,7 +46,9 @@ export const Login = async (app: FastifyInstance) => {
       }
 
       const isValid = await comparePassword(password, user.senha);
-
+      console.log("🍀Password: ", password);
+      console.log("🍀User Senha: ", user.senha);
+      
       if (!isValid) {
         const duration = Date.now() - startTime;
 

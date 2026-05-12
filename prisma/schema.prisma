@@ -21,6 +21,7 @@ model Users {
   role                 Role                   @default(OPERADOR)
   perfis               UserPerfil[]
   notifications        Notification[]
+  venda                venda[]            
 
   @@map("users")
 }
@@ -225,6 +226,7 @@ model compras {
 
 model venda {
   id            String              @id
+  user_id       String              @default(uuid())
   name_product  String?
   methodPayment venda_methodPayment @default(CACHE)
   date_validate DateTime
@@ -235,6 +237,7 @@ model venda {
   updated_at    DateTime
   date_venda    DateTime?           @default(now())
   category      String?
+  user          Users               @relation(fields: [user_id], references: [id_user], onDelete: Cascade)
 }
 
 enum Role {

@@ -6,7 +6,11 @@ import { z } from "zod";
 export const GetAllVenda = async (app: FastifyInstance) => {
     app.withTypeProvider<ZodTypeProvider>().get("/venda/getAll", {},
         async (request, reply) => {
-            const vendas = await prisma.venda.findMany();
+            const vendas = await prisma.venda.findMany({
+                select: {
+                    user: true
+                }
+            });
             return reply.status(200).send(vendas);
         });
 }

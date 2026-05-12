@@ -7,6 +7,6 @@ export const createUserSchema = z.object({
     phone_number: z.string().optional(),
     avatar: z.string().optional(),
     born: z.string().or(z.date()),
-    role: z.enum(["ADMINISTRADOR", "OPERADOR"]).optional().default("OPERADOR"),
+    role: z.enum(["ADMINISTRADOR", "GERENTE", "OPERADOR"]).optional().default("OPERADOR"),
     user_status: z.enum(["ACTIVO", "INACTIVO"]).optional().default("ACTIVO"),
 });
