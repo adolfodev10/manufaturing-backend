@@ -44,13 +44,13 @@ export const CreateVenda = async (app: FastifyInstance) => {
                         date_venda: date_venda ? new Date(date_venda) : new Date(),
                         created_at: new Date(created_at),
                         updated_at: new Date(updated_at),
-                        id:randomUUID(),
+                        id: randomUUID(),
+                        user_id: userId || "4265c1f5-4d66-11f1-927f-d481d7a48bc8", // 👈 FK obrigatória
                     },
                 });
 
                 const duration = Date.now() - startTime;
 
-                // LOG DE SUCESSO (fire and forget)
                 logger.logSync({
                     level: "SUCCESS",
                     action: "Criar Venda",
@@ -60,14 +60,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
                     ip,
                     resource: "vendas",
                     resource_id: venda.id,
-                    new_value: {
-                        name_product,
-                        category,
-                        methodPayment,
-                        price,
-                        quantity,
-                        date_venda,
-                    },
+                    new_value: JSON.stringify({ name_product, category, methodPayment, price, quantity, date_venda }),
                     duration,
                 });
 
@@ -76,7 +69,6 @@ export const CreateVenda = async (app: FastifyInstance) => {
             } catch (error) {
                 const duration = Date.now() - startTime;
 
-                // LOG DE ERRO
                 logger.logSync({
                     level: "ERROR",
                     action: "Criar Venda",
@@ -86,7 +78,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
                     ip,
                     resource: "vendas",
                     duration,
-                    old_value: req.body,
+                    old_value: JSON.stringify(req.body), // 👈 String, não Object
                 });
 
                 console.error("Erro ao criar venda:", error);

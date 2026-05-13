@@ -240,6 +240,23 @@ model venda {
   user          Users               @relation(fields: [user_id], references: [id_user], onDelete: Cascade)
 }
 
+model produtosExpirados {
+  id_expired   String   @id @default(uuid())
+  id_product   String
+  name_product String
+  category     String?
+  price        String
+  quantity     String
+  date_validate DateTime
+  date_expired DateTime @default(now())
+  motivo       String   @default("Expirado automaticamente")
+  deleted_by   String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@map("produtosExpirados")
+}
+
 enum Role {
   ADMINISTRADOR
   OPERADOR
