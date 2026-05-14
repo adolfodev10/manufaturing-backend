@@ -2,16 +2,81 @@ import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../../lib/prismaclient";
 import { z } from "zod";
+import { logger } from "../../modules/services/logs/logger";
 
 export const GetAllVenda = async (app: FastifyInstance) => {
-    app.withTypeProvider<ZodTypeProvider>().get("/venda/getAll", {},
+    app.withTypeProvider<ZodTypeProvider>().get("/venda/getAll", {
+        schema: {
+            querystring: z.object({
+                page: z.coerce.number().int().min(1).optional().default(1),
+                limit: z.coerce.number().int().min(1).max(100).optional().default(10),
+                
+            })
+        }
+    },
         async (request, reply) => {
-            const vendas = await prisma.venda.findMany({
-                select: {
-                    user: true
+            const startTime = Date.now();
+            const { page, limit, search, status, tipo } = request.query as any;
+            const ip = request.ip || request.socket.remoteAddress || "unknown";
+            const user = (request as any).user?.email || "sistema";
+            const userId = (request as any).user?.id;
+
+
+            try {
+                const skip = (page - 1) * limit;
+
+                const where: any = {};
+
+                if (status) {
+                    where.status = status;
                 }
-            });
-            return reply.status(200).send(vendas);
+
+                if (tipo) {
+                    where.tipo = tipo;
+                }
+
+                const [vendas, total] = await Promise.all([
+                    prisma.venda.findMany({
+                        where,
+                        skip,
+                        take: limit,
+                        orderBy: { name_product: "asc" },
+                        include: {
+                            user: true
+                        }
+                    }),
+                    prisma.venda.count({ where })
+                ]);
+
+                const duration = Date.now() - startTime;
+
+                await logger.success({
+                    action: "Listar Vendas",
+                    user,
+                    user_id: userId,
+                    details: `Listagem de vendas realizada. Total: ${total}`,
+                    ip,
+                    resource: "vendas",
+                    duration,
+                });
+                return reply.status(200).send(vendas);
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                await logger.error({
+                    action: "Listar Vendas",
+                    user,
+                    user_id: userId,
+                    details: `Erro ao listar vendas: ${(error as Error).message}`,
+                    ip,
+                    resource: "vendas",
+                    duration,
+                });
+
+                return reply.status(500).send({
+                    success: false,
+                    message: "Erro ao listar vendas"
+                });
+            }
         });
 }
 

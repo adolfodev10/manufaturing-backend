@@ -97,7 +97,7 @@ export const DeleteProduct = async (app: FastifyInstance) => {
             // 5. Registar log de sucesso
             const duration = Date.now() - startTime;
             await logger.success({
-                action: "DeleteProduct",
+                action: "Eliminar Produtos",
                 user: user.email,
                 details: `Produto "${product.name_product}" apagado com sucesso`,
                 ip,
@@ -114,7 +114,7 @@ export const DeleteProduct = async (app: FastifyInstance) => {
         } catch (error: any) {
             const duration = Date.now() - startTime;
             await logger.error({
-                action: "DeleteProduct",
+                action: "Eliminar Produtos",
                 user: "unknown",
                 details: `Erro ao apagar produto: ${error.message}`,
                 ip,

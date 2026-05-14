@@ -4,11 +4,13 @@ import { prisma } from "../../lib/prismaclient";
 import { createVendaSchema } from "../../modules/validations/venda/create-venda";
 import { logger } from "../../modules/services/logs/logger";
 import { randomUUID } from "crypto";
+import z from "zod";
 
 export const CreateVenda = async (app: FastifyInstance) => {
     app.withTypeProvider<ZodTypeProvider>().post('/venda/create', {
         schema: {
-            body: createVendaSchema
+            body: createVendaSchema,
+            params: z.object({}),
         },
     },
         async (req, res) => {
@@ -16,19 +18,27 @@ export const CreateVenda = async (app: FastifyInstance) => {
             const startTime = Date.now();
             const ip = req.ip || req.socket.remoteAddress || 'unknown';
             const user = (req as any).user?.name || 'sistema';
-            const userId = (req as any).user?.id;
+            const {id_user} = req.body as any;
+
+            const userId = await prisma.users.findFirst({
+                where: {
+                    id_user
+                }
+            })
+
+            console.log("🐛🐛🐛 User ID: ", userId);
 
             try {
-                const { 
-                    name_product, 
-                    category, 
-                    estado, 
-                    date_venda, 
-                    methodPayment, 
-                    price, 
-                    date_validate, 
-                    quantity, 
-                    created_at, 
+                const {
+                    name_product,
+                    category,
+                    estado,
+                    date_venda,
+                    methodPayment,
+                    price,
+                    date_validate,
+                    quantity,
+                    created_at,
                     updated_at
                 } = req.body;
 
@@ -45,7 +55,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
                         created_at: new Date(created_at),
                         updated_at: new Date(updated_at),
                         id: randomUUID(),
-                        user_id: userId || "4265c1f5-4d66-11f1-927f-d481d7a48bc8", // 👈 FK obrigatória
+                        user_id: userId?.id_user
                     },
                 });
 
@@ -54,8 +64,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
                 logger.logSync({
                     level: "SUCCESS",
                     action: "Criar Venda",
-                    user,
-                    user_id: userId,
+                    user:  user,
                     details: `Venda criada: ${name_product} - Qtd: ${quantity} - Preço: ${price}`,
                     ip,
                     resource: "vendas",
@@ -73,7 +82,6 @@ export const CreateVenda = async (app: FastifyInstance) => {
                     level: "ERROR",
                     action: "Criar Venda",
                     user,
-                    user_id: userId,
                     details: `Erro ao criar venda: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
                     ip,
                     resource: "vendas",
