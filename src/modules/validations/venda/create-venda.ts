@@ -13,4 +13,7 @@ export const createVendaSchema = z.object({
   date_venda: z.string().optional(),
   created_at: z.string(),
   updated_at: z.string(),
+  client_name: z.string().optional(),
+  client_nif: z.string().optional(),
+  payment_details: z.string().optional(),
 });
