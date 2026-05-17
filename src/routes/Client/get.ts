@@ -34,13 +34,6 @@ export const GetClient = async (app: FastifyInstance) => {
                             where: { client_id: client.id_client }
                         });
 
-                        const totalValor = await prisma.invoices.aggregate({
-                            where: {
-                                client_id: client.id_client,
-                                approval: "PAGAS"
-                            },
-
-                        });
 
                         return {
                             id_client: client.id_client,
