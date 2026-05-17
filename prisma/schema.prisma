@@ -162,6 +162,15 @@ model estoque {
   category      String?
 }
 
+model system_config {
+  id                      String   @id @default(uuid())
+  key                     String   @unique
+  value                   Json
+  updated_at              DateTime @updatedAt
+
+  @@map("system_config")
+}
+
 model invoices {
   id_invoice String            @id
   client_id  String

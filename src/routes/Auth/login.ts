@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import z from "zod";
 import { prisma } from "../../lib/prismaclient";
-import { comparePassword, verifyPassword } from "../../modules/services/bcrypt/verifyPassword";
+import { comparePassword } from "../../modules/services/bcrypt/verifyPassword";
 import { generateToken } from "../../modules/services/jwt/generateToken";
 import { logger } from "../../modules/services/logs/logger";
 
@@ -22,84 +22,91 @@ export const Login = async (app: FastifyInstance) => {
       const ip = request.ip || request.socket.remoteAddress || "unknown";
 
       try {
-      const user = await prisma.users.findFirst({
-        where: {
-          email,
-          user_status: "ACTIVO"
-        },
-      });
+        const user = await prisma.users.findFirst({
+          where: {
+            email,
+            user_status: "ACTIVO"
+          },
+        });
 
-      console.log("🍀User: ", user);
+        console.log("🍀User: ", user);
 
-      if (!user) {
+        if (!user) {
+          const duration = Date.now() - startTime;
+
+          await logger.warning({
+            action: "Login",
+            user: email,
+            user_id: undefined, // 👈 ADICIONADO
+            details: "Tentativa de login - Email não encontrado ou inativo",
+            ip,
+            resource: "auth",
+            duration,
+          });
+          return reply.status(401).send({ error: 'Credenciais inválidas' });
+        }
+
+        const isValid = await comparePassword(password, user.senha);
+        console.log("🍀Password: ", password);
+        console.log("🍀User Senha: ", user.senha);
+        
+        if (!isValid) {
+          const duration = Date.now() - startTime;
+
+          await logger.warning({
+            action: "Login",
+            user: email,
+            user_id: user.id_user, // 👈 ADICIONADO (usuário existe, senha errada)
+            details: "Tentativa de login - Senha inválida",
+            ip,
+            resource: "auth",
+            duration,
+          });
+          return reply.status(401).send({ error: 'Credenciais inválidas' });
+        }
+
         const duration = Date.now() - startTime;
 
-        await logger.warning({
+        await logger.success({
           action: "Login",
           user: email,
-          details: "Tentativa de login com email não encontrado",
+          user_id: user.id_user, // 👈 ADICIONADO
+          details: `Login realizado com sucesso. Role: ${user.role}`,
           ip,
           resource: "auth",
           duration,
         });
-        return reply.status(401).send({ error: 'Credentials invalid' });
-      }
 
-      const isValid = await comparePassword(password, user.senha);
-      console.log("🍀Password: ", password);
-      console.log("🍀User Senha: ", user.senha);
-      
-      if (!isValid) {
+        const token = await generateToken({
+          id_user: user.id_user,
+          email: user.email
+        });
+
+        const userWithoutPassword = {
+          id_user: user.id_user,
+          name: user.name,
+          email: user.email,
+          phone_number: user.phone_number,
+          born: user.born,
+          role: user.role,
+        };
+
+        return { user: userWithoutPassword, token };
+
+      } catch (error: any) {
         const duration = Date.now() - startTime;
 
-        await logger.warning({
+        await logger.error({
           action: "Login",
           user: email,
-          details: "Tentativa de login com senha inválida",
+          user_id: undefined, // 👈 ADICIONADO
+          details: `Erro interno durante login: ${error.message}`,
           ip,
           resource: "auth",
           duration,
         });
-        return reply.status(401).send({ error: 'Credentials invalid' });
+
+        return reply.status(500).send({ error: 'Erro interno do servidor' });
       }
-
-      const duration = Date.now() - startTime;
-
-      await logger.success({
-        action: "Login",
-        user: email,
-        details: "Login realizado com sucesso",
-        ip,
-        resource: "auth",
-        duration,
-      });
-
-      const token = await generateToken({
-        id_user: user.id_user,
-        email: user.email
-      });
-
-      const userWithoutPassword = {
-        id_user: user.id_user,
-        name: user.name,
-        email: user.email,
-        phone_number: user.phone_number,
-        born: user.born,
-        role: user.role,
-      }
-      return { user: userWithoutPassword, token };
-    } catch (error: any) {
-      const duration = Date.now() - startTime;
-
-      await logger.error({
-        action: "Login",
-        user: email,
-        details: `Erro durante login: ${error.message}`,
-        ip,
-        resource: "auth",
-        duration,
-      });
-      return reply.status(500).send({ error: 'Internal server error' });
-    }
-  });
-}
+    });
+};

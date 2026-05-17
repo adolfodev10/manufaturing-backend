@@ -3,6 +3,7 @@ import { ZodTypeProvider } from "fastify-type-provider-zod";
 import z from "zod";
 import { prisma } from "../../lib/prismaclient";
 import { format } from "date-fns";
+import { logger } from "../../modules/services/logs/logger";
 
 export const CreateBackup = async (app: FastifyInstance) => {
     app.withTypeProvider<ZodTypeProvider>().post("/backups/create", {
@@ -19,7 +20,8 @@ export const CreateBackup = async (app: FastifyInstance) => {
         async (req, reply) => {
             const startTime = Date.now();
             const { name, tables, compression, encryption, includeMedia } = req.body;
-            const user = (req as any).user?.email || 'sistema';
+            const ip = req.ip || req.socket.remoteAddress || "unknown";
+            const user = (req as any).user?.email || "sistema";
             const userId = (req as any).user?.id;
 
             try {
@@ -32,11 +34,10 @@ export const CreateBackup = async (app: FastifyInstance) => {
                 // Simular duração (entre 1 e 10 segundos)
                 const duration = Math.floor(Math.random() * 9000) + 1000;
 
-                // Preparar o valor de tables - USAR JSON.stringify
+                // Preparar o valor de tables
                 const tablesValue = tables && tables.length > 0 
                     ? JSON.stringify(tables) 
-                    : JSON.stringify([]); // Sempre string JSON válida
-
+                    : JSON.stringify([]);
 
                 // Criar registro do backup no banco
                 const backup = await prisma.backups.create({
@@ -47,7 +48,7 @@ export const CreateBackup = async (app: FastifyInstance) => {
                         type: "manual",
                         status: "completed",
                         completed_at: new Date(),
-                        tables: tablesValue, // <-- AGORA É STRING JSON
+                        tables: tablesValue,
                         records_count: Math.floor(Math.random() * 10000) + 1000,
                         location: `/backups/${filename}`,
                         checksum: encryption ? `sha256:${Math.random().toString(36).substring(2)}` : null,
@@ -57,26 +58,21 @@ export const CreateBackup = async (app: FastifyInstance) => {
                     },
                 });
 
-                const duration_total = Date.now() - startTime;
+                const durationTotal = Date.now() - startTime;
 
-                // Log da operação
-                try {
-                    await prisma.logs.create({
-                        data: {
-                            level: "SUCCESS",
-                            action: "Criar Backup",
-                            user,
-                            user_id: userId,
-                            details: `Backup manual criado: ${name} - Tamanho: ${formatBytes(size)}`,
-                            ip: req.ip,
-                            resource: "backups",
-                            resource_id: backup.id,
-                            duration: duration_total,
-                        },
-                    });
-                } catch (logError) {
-                    console.error("Erro ao criar log:", logError);
-                }
+                // ===== LOG DE SUCESSO =====
+                await logger.success({
+                    action: "Criar Backup",
+                    user,
+                    user_id: userId,
+                    details: `Backup manual criado: "${name}" | Arquivo: ${filename} | ` +
+                             `Tamanho: ${formatBytes(size)} | Tabelas: ${(tables && tables.length > 0 ? tables.join(', ') : 'Todas')} | ` +
+                             `Compressão: ${compression ? 'Sim' : 'Não'} | Encriptação: ${encryption ? 'Sim' : 'Não'} | ` +
+                             `Duração: ${duration}ms`,
+                    ip,
+                    resource: "backups",
+                    duration: durationTotal,
+                });
 
                 // Na resposta, converter de volta para array
                 const backupResponse = {
@@ -88,27 +84,21 @@ export const CreateBackup = async (app: FastifyInstance) => {
                 return reply.status(201).send(backupResponse);
 
             } catch (error: any) {
-                const duration = Date.now() - startTime;
+                const durationTotal = Date.now() - startTime;
 
-                // Log de erro
-                try {
-                    await prisma.logs.create({
-                        data: {
-                            level: "ERROR",
-                            action: "Criar Backup",
-                            user,
-                            user_id: userId,
-                            details: `Erro ao criar backup: ${error.message}`,
-                            ip: req.ip,
-                            resource: "backups",
-                            duration,
-                        },
-                    });
-                } catch (logError) {
-                    console.error("Erro ao criar log de erro:", logError);
-                }
+                // ===== LOG DE ERRO =====
+                await logger.error({
+                    action: "Criar Backup",
+                    user,
+                    user_id: userId,
+                    details: `Erro ao criar backup "${name}": ${error.message}`,
+                    ip,
+                    resource: "backups",
+                    duration: durationTotal,
+                });
 
                 console.error("Erro detalhado ao criar backup:", error);
+                
                 return reply.status(500).send({ 
                     error: "Erro ao criar backup",
                     message: error.message 

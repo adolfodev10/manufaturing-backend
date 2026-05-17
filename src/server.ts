@@ -62,6 +62,7 @@ import { GetAllFornecedores } from "./routes/Fornecedores/get";
 import { GetFornecedorById } from "./routes/Fornecedores/getById";
 import { UpdateFornecedor } from "./routes/Fornecedores/update";
 import { DeleteFornecedor } from "./routes/Fornecedores/delete";
+import { ConfiguracoesRoutes } from "./routes/Configuracoes";
 
 // import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
 
@@ -201,6 +202,10 @@ app.register(GetAllFornecedores);
 app.register(GetFornecedorById);
 app.register(UpdateFornecedor);
 app.register(DeleteFornecedor);
+
+// Configurações
+
+app.register(ConfiguracoesRoutes);
 
 
 app.listen({ port, host: "0.0.0.0" }).then(() => console.log(`Servidor rodando na porta : ${port}`))
