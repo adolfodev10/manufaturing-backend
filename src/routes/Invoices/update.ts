@@ -2,6 +2,7 @@ import z from "zod";
 import { prisma } from "../../lib/prismaclient";
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
+import { logger } from "../../modules/services/logs/logger";
 
 export const UpdateInvoice = async (app: FastifyInstance) => {
     app.withTypeProvider<ZodTypeProvider>().put("/invoice/update/:id", {
@@ -18,20 +19,165 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
         }
     },
         async (req, reply) => {
+            const startTime = Date.now();
             const { id } = req.params;
             const { client_id, price, date, approval } = req.body;
-            const invoice = await prisma.invoices.update({
-                where: {
-                    id_invoice: id,
-                },
-                data: {
-                    client_id,
-                    price: price,
-                    date,
-                    approval,
+            const ip = req.ip || req.socket.remoteAddress || "unknown";
+            const user = (req as any).user?.email || "sistema";
+            const userId = (req as any).user?.id;
+
+            try {
+                // Verificar se a dívida existe
+                const existingInvoice = await prisma.invoices.findUnique({
+                    where: { id_invoice: id },
+                    include: {
+                        clients: {
+                            select: { name: true, nif: true }
+                        }
+                    }
+                });
+
+                if (!existingInvoice) {
+                    const duration = Date.now() - startTime;
+
+                    await logger.warning({
+                        action: "Atualizar Dívida",
+                        user,
+                        user_id: userId,
+                        details: `Tentativa de atualizar dívida inexistente. ID: ${id}`,
+                        ip,
+                        resource: "invoices",
+                        resource_id: id,
+                        duration,
+                    });
+
+                    return reply.status(404).send({ 
+                        message: "Dívida não encontrada" 
+                    });
                 }
-            });
-            return reply.status(200).send(invoice);
+
+                // Verificar se o cliente existe (se foi alterado)
+                if (client_id !== existingInvoice.client_id) {
+                    const clientExists = await prisma.clients.findUnique({
+                        where: { id_client: client_id },
+                        select: { id_client: true, name: true }
+                    });
+
+                    if (!clientExists) {
+                        const duration = Date.now() - startTime;
+
+                        await logger.warning({
+                            action: "Atualizar Dívida",
+                            user,
+                            user_id: userId,
+                            details: `Tentativa de atualizar dívida com cliente inexistente. Client ID: ${client_id}`,
+                            ip,
+                            resource: "invoices",
+                            resource_id: id,
+                            duration,
+                        });
+
+                        return reply.status(404).send({ 
+                            message: "Cliente não encontrado" 
+                        });
+                    }
+                }
+
+                // Montar lista de alterações para o log
+                const alteracoes: string[] = [];
+                const clienteNome = (existingInvoice as any).clients?.name || "N/A";
+                const clienteNif = (existingInvoice as any).clients?.nif || "N/A";
+
+                if (existingInvoice.client_id !== client_id) {
+                    alteracoes.push(`Cliente alterado: ${existingInvoice.client_id} → ${client_id}`);
+                }
+
+                if (Number(existingInvoice.price) !== Number(price)) {
+                    alteracoes.push(`Valor: ${Number(existingInvoice.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} → ${Number(price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}`);
+                }
+
+                if (existingInvoice.date?.toISOString() !== new Date(date).toISOString()) {
+                    alteracoes.push(`Data: ${existingInvoice.date?.toISOString()} → ${new Date(date).toISOString()}`);
+                }
+
+                if (existingInvoice.approval !== approval) {
+                    const estadoAntigo = existingInvoice.approval === 'NAO_PAGAS' ? 'Pendente' : 'Paga';
+                    const estadoNovo = approval === 'NAO_PAGAS' ? 'Pendente' : 'Paga';
+                    alteracoes.push(`Estado: ${estadoAntigo} → ${estadoNovo}`);
+                }
+
+                const invoice = await prisma.invoices.update({
+                    where: {
+                        id_invoice: id,
+                    },
+                    data: {
+                        client_id,
+                        price: price,
+                        date: new Date(date),
+                        approval,
+                        updated_at: new Date(),
+                    }
+                });
+
+                const duration = Date.now() - startTime;
+
+                // LOG ESPECIAL quando a dívida é paga
+                if (existingInvoice.approval === 'NAO_PAGAS' && approval === 'PAGAS') {
+                    await logger.success({
+                        action: "Pagamento de Dívida",
+                        user,
+                        user_id: userId,
+                        details: `💸 Dívida PAGA! ` +
+                                 `ID: ${id} | ` +
+                                 `Cliente: ${clienteNome} (NIF: ${clienteNif}) | ` +
+                                 `Valor pago: ${Number(price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} | ` +
+                                 `Data: ${new Date(date).toISOString()}`,
+                        ip,
+                        resource: "invoices",
+                        resource_id: id,
+                        duration,
+                    });
+                } else {
+                    await logger.success({
+                        action: "Atualizar Dívida",
+                        user,
+                        user_id: userId,
+                        details: `Dívida atualizada com sucesso. ` +
+                                 `ID: ${id} | ` +
+                                 `Cliente: ${clienteNome} (NIF: ${clienteNif}) | ` +
+                                 (alteracoes.length > 0 
+                                    ? `Alterações: ${alteracoes.join('; ')}` 
+                                    : 'Nenhuma alteração detectada'),
+                        ip,
+                        resource: "invoices",
+                        resource_id: id,
+                        duration,
+                    });
+                }
+
+                return reply.status(200).send(invoice);
+
+            } catch (error: any) {
+                const duration = Date.now() - startTime;
+
+                await logger.error({
+                    action: "Atualizar Dívida",
+                    user,
+                    user_id: userId,
+                    details: `Erro ao atualizar dívida ID ${id}: ${error.message}`,
+                    ip,
+                    resource: "invoices",
+                    resource_id: id,
+                    duration,
+                });
+
+                console.error("Erro ao atualizar dívida:", error);
+                
+                return reply.status(500).send({ 
+                    error: "Erro ao atualizar dívida",
+                    message: error.message 
+                });
+            }
         }
-    )
-}
+    );
+};
