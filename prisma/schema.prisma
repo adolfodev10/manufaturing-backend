@@ -141,7 +141,7 @@ model BackupConfig {
 }
 
 model clients {
-  id_client  String     @id
+  id_client  String     @id @default(uuid())
   name       String
   telefone   String
   nif        String?

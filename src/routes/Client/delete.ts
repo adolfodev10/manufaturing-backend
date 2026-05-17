@@ -27,12 +27,11 @@ export const DeleteClient = async (app: FastifyInstance) => {
                 if (!client) {
                     const duration = Date.now() - startTime;
                     
-                    // LOG DE AVISO
                     await logger.warning({
-                        action: "Deletar Cliente",
+                        action: "Eliminar Cliente",
                         user,
                         user_id: userId,
-                        details: `Tentativa de deletar cliente não encontrado. ID: ${id}`,
+                        details: `Tentativa de eliminar cliente inexistente. ID: ${id}`,
                         ip,
                         resource: "clients",
                         resource_id: id,
@@ -42,6 +41,19 @@ export const DeleteClient = async (app: FastifyInstance) => {
                     return res.status(404).send({ message: 'Cliente não encontrado' });
                 }
 
+                // Guardar informações antes de deletar para o log
+                const clientInfo = {
+                    nome: client.name,
+                    nif: client.nif,
+                    telefone: client.telefone,
+                    criado_em: client.created_at,
+                };
+
+                // Verificar se o cliente tem faturas associadas
+                const faturasCount = await prisma.invoices.count({
+                    where: { client_id: id }
+                });
+
                 await prisma.clients.delete({
                     where: {
                         id_client: id,
@@ -50,37 +62,46 @@ export const DeleteClient = async (app: FastifyInstance) => {
 
                 const duration = Date.now() - startTime;
 
-                // LOG DE SUCESSO
                 await logger.success({
-                    action: "Deletar Cliente",
+                    action: "Eliminar Cliente",
                     user,
                     user_id: userId,
-                    details: `Cliente ${client.name} deletado com sucesso. ID: ${id}`,
+                    details: `Cliente eliminado com sucesso. ` +
+                             `Nome: "${clientInfo.nome}" | ` +
+                             `NIF: ${clientInfo.nif || 'Não informado'} | ` +
+                             `Telefone: ${clientInfo.telefone || 'Não informado'} | ` +
+                             `Criado em: ${new Date(clientInfo.criado_em).toISOString()} | ` +
+                             `Faturas associadas: ${faturasCount}`,
                     ip,
                     resource: "clients",
                     resource_id: id,
                     duration,
                 });
 
-                return res.status(200).send({ message: "Cliente Eliminado com sucesso" });
+                return res.status(200).send({ 
+                    message: "Cliente eliminado com sucesso",
+                    faturas_afetadas: faturasCount
+                });
                 
             } catch (error: any) {
                 const duration = Date.now() - startTime;
 
-                // LOG DE ERRO
                 await logger.error({
-                    action: "Deletar Cliente",
+                    action: "Eliminar Cliente",
                     user,
                     user_id: userId,
-                    details: `Erro ao deletar cliente ID ${id}: ${error.message}`,
+                    details: `Erro ao eliminar cliente ID ${id}: ${error.message}`,
                     ip,
                     resource: "clients",
                     resource_id: id,
                     duration,
                 });
 
-                console.error("Erro ao deletar cliente:", error);
-                return res.status(500).send({ error: "Erro interno do servidor" });
+                console.error("Erro ao eliminar cliente:", error);
+                return res.status(500).send({ 
+                    error: "Erro interno do servidor",
+                    message: error.message 
+                });
             }
         }
     );

@@ -3,7 +3,6 @@ import z from "zod";
 import { prisma } from "../../lib/prismaclient";
 import { logger } from "../../modules/services/logs/logger";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
-import { randomUUID } from "crypto";
 
 export const CreateClient = async (app: FastifyInstance) => {
     app.withTypeProvider<ZodTypeProvider>().post("/client/create", {
@@ -23,14 +22,38 @@ export const CreateClient = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
+                // Verificar se já existe cliente com mesmo NIF (se fornecido)
+                if (nif) {
+                    const existingClient = await prisma.clients.findFirst({
+                        where: { nif }
+                    });
+
+                    if (existingClient) {
+                        const duration = Date.now() - startTime;
+
+                        await logger.warning({
+                            action: "Criar Cliente",
+                            user,
+                            user_id: userId,
+                            details: `Tentativa de criar cliente com NIF duplicado: ${nif}`,
+                            ip,
+                            resource: "clients",
+                            duration,
+                        });
+
+                        return reply.status(409).send({ 
+                            message: "Já existe um cliente com este NIF" 
+                        });
+                    }
+                }
+
                 const client = await prisma.clients.create({
                     data: {
                         name,
                         telefone: telefone || "",
                         nif: nif || "",
-                        created_at: new Date(), // Campo obrigatório
-                        updated_at: new Date(), // Campo obrigatório
-                        id_client: randomUUID(), 
+                        created_at: new Date(),
+                        updated_at: new Date(),
                     },
                 });
 
@@ -40,7 +63,11 @@ export const CreateClient = async (app: FastifyInstance) => {
                     action: "Criar Cliente",
                     user,
                     user_id: userId,
-                    details: `Cliente ${client.name} criado com sucesso. ID: ${client.id_client}`,
+                    details: `Cliente criado com sucesso. ` +
+                             `Nome: "${client.name}" | ` +
+                             `NIF: ${client.nif || 'Não informado'} | ` +
+                             `Telefone: ${client.telefone || 'Não informado'} | ` +
+                             `ID: ${client.id_client}`,
                     ip,
                     resource: "clients",
                     resource_id: client.id_client,
@@ -48,18 +75,26 @@ export const CreateClient = async (app: FastifyInstance) => {
                 });
 
                 return reply.status(201).send(client);
-            } catch (error) {
+
+            } catch (error: any) {
                 const duration = Date.now() - startTime;
+
                 await logger.error({
                     action: "Criar Cliente",
                     user,
                     user_id: userId,
-                    details: `Erro ao criar cliente: ${(error as Error).message}`,
+                    details: `Erro ao criar cliente "${name}": ${error.message}`,
                     ip,
                     resource: "clients",
                     duration,
                 });
-                return reply.status(500).send({ message: "Erro ao criar cliente" });
+
+                console.error("Erro ao criar cliente:", error);
+                
+                return reply.status(500).send({ 
+                    message: "Erro ao criar cliente",
+                    error: error.message 
+                });
             }
         }
     );
