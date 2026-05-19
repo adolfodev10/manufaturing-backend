@@ -1,18 +1,18 @@
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../../lib/prismaclient";
-import { createInvoiceSchema } from "../../modules/validations/invoices/create-invoice-schema";
 import { logger } from "../../modules/services/logs/logger";
+import { createDividaSchema } from "../../modules/validations/dividas/create-divida-schema";
 
-export const CreateInvoice = async (app: FastifyInstance) => {
-    app.withTypeProvider<ZodTypeProvider>().post("/invoice/create", {
+export const CreateDivida = async (app: FastifyInstance) => {
+    app.withTypeProvider<ZodTypeProvider>().post("/divida/create", {
         schema: {
-            body: createInvoiceSchema
+            body: createDividaSchema
         },
     },
         async (req, reply) => {
             const startTime = Date.now();
-            const { id_invoice, client_id, product_id = "", price, date } = req.body;
+            const { id_divida, client_id, product_id = "", price, date } = req.body;
             const ip = req.ip || req.socket.remoteAddress || "unknown";
             const user = (req as any).user?.email || "sistema";
             const userId = (req as any).user?.id;
@@ -33,7 +33,7 @@ export const CreateInvoice = async (app: FastifyInstance) => {
                         user_id: userId,
                         details: `Tentativa de criar dívida com cliente inexistente. Cliente ID: ${client_id}`,
                         ip,
-                        resource: "invoices",
+                        resource: "dividas",
                         duration,
                     });
 
@@ -43,21 +43,21 @@ export const CreateInvoice = async (app: FastifyInstance) => {
                 }
 
                 // Verificar se já existe dívida com mesmo ID
-                const existingInvoice = await prisma.invoices.findUnique({
-                    where: { id_invoice }
+                const existingDivida = await prisma.dividas.findUnique({
+                    where: { id_divida }
                 });
 
-                if (existingInvoice) {
+                if (existingDivida) {
                     const duration = Date.now() - startTime;
 
                     await logger.warning({
                         action: "Criar Dívida",
                         user,
                         user_id: userId,
-                        details: `Tentativa de criar dívida com ID duplicado. ID: ${id_invoice}`,
+                        details: `Tentativa de criar dívida com ID duplicado. ID: ${id_divida}`,
                         ip,
-                        resource: "invoices",
-                        resource_id: id_invoice,
+                        resource: "dividas",
+                        resource_id: id_divida,
                         duration,
                     });
 
@@ -67,7 +67,7 @@ export const CreateInvoice = async (app: FastifyInstance) => {
                 }
 
                 const data: any = {
-                    id_invoice,
+                    id_divida,
                     client_id,
                     price,
                     date: date || new Date(),
@@ -80,7 +80,7 @@ export const CreateInvoice = async (app: FastifyInstance) => {
                     data.product_id = product_id;
                 }
                 
-                const invoice = await prisma.invoices.create({ data });
+                const divida = await prisma.dividas.create({ data });
 
                 const duration = Date.now() - startTime;
 
@@ -89,18 +89,18 @@ export const CreateInvoice = async (app: FastifyInstance) => {
                     user,
                     user_id: userId,
                     details: `Dívida registada com sucesso. ` +
-                             `ID: ${id_invoice} | ` +
+                             `ID: ${id_divida} | ` +
                              `Cliente: ${clientExists.name} (${client_id}) | ` +
                              `Valor: ${price.toLocaleString()} | ` +
                              `Produto: ${product_id || 'Não especificado'} | ` +
                              `Estado: Pendente (NAO_PAGAS)`,
                     ip,
-                    resource: "invoices",
-                    resource_id: id_invoice,
+                    resource: "dividas",
+                    resource_id: id_divida,
                     duration,
                 });
 
-                return reply.status(201).send({ invoice });
+                return reply.status(201).send({ divida });
 
             } catch (error: any) {
                 const duration = Date.now() - startTime;
@@ -109,10 +109,10 @@ export const CreateInvoice = async (app: FastifyInstance) => {
                     action: "Criar Dívida",
                     user,
                     user_id: userId,
-                    details: `Erro ao registar dívida ID ${id_invoice}: ${error.message}`,
+                    details: `Erro ao registar dívida ID ${id_divida}: ${error.message}`,
                     ip,
-                    resource: "invoices",
-                    resource_id: id_invoice,
+                    resource: "dividas",
+                    resource_id: id_divida,
                     duration,
                 });
 

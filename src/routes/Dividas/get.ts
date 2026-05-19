@@ -3,8 +3,8 @@ import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../../lib/prismaclient";
 import { logger } from "../../modules/services/logs/logger";
 
-export const GetAllInvoice = async (app: FastifyInstance) => {
-    app.withTypeProvider<ZodTypeProvider>().get('/invoice/getAll', {},
+export const GetAllDivida = async (app: FastifyInstance) => {
+    app.withTypeProvider<ZodTypeProvider>().get('/divida/getAll', {},
         async (req, res) => {
             const startTime = Date.now();
             const ip = req.ip || req.socket.remoteAddress || "unknown";
@@ -12,7 +12,7 @@ export const GetAllInvoice = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                const invoices = await prisma.invoices.findMany({
+                const dividas = await prisma.dividas.findMany({
                     include: {
                         clients: {
                             select: {
@@ -34,12 +34,12 @@ export const GetAllInvoice = async (app: FastifyInstance) => {
                 });
 
                 // Estatísticas rápidas
-                const totalDividas = invoices.length;
-                const totalPendentes = invoices.filter(i => i.approval === 'NAO_PAGAS').length;
-                const totalPagas = invoices.filter(i => i.approval === 'PAGAS').length;
-                const valorTotalPendente = invoices
-                    .filter(i => i.approval === 'NAO_PAGAS')
-                    .reduce((sum, i) => sum + Number(i.price), 0);
+                const totalDividas = dividas.length;
+                const totalPendentes = dividas.filter(d => d.approval === 'NAO_PAGAS').length;
+                const totalPagas = dividas.filter(d => d.approval === 'PAGAS').length;
+                const valorTotalPendente = dividas
+                    .filter(d => d.approval === 'NAO_PAGAS')
+                    .reduce((sum, d) => sum + Number(d.price), 0);
 
                 const duration = Date.now() - startTime;
 
@@ -53,12 +53,12 @@ export const GetAllInvoice = async (app: FastifyInstance) => {
                              `Pagas: ${totalPagas} | ` +
                              `Valor pendente: ${valorTotalPendente.toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}`,
                     ip,
-                    resource: "invoices",
+                    resource: "dividas",
                     duration,
                 });
 
                 return res.status(200).send({ 
-                    invoices,
+                    dividas,
                     resumo: {
                         total: totalDividas,
                         pendentes: totalPendentes,
@@ -76,7 +76,7 @@ export const GetAllInvoice = async (app: FastifyInstance) => {
                     user_id: userId,
                     details: `Erro ao listar dívidas: ${error.message}`,
                     ip,
-                    resource: "invoices",
+                    resource: "dividas",
                     duration,
                 });
 

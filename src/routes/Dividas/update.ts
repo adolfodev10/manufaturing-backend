@@ -4,8 +4,8 @@ import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { logger } from "../../modules/services/logs/logger";
 
-export const UpdateInvoice = async (app: FastifyInstance) => {
-    app.withTypeProvider<ZodTypeProvider>().put("/invoice/update/:id", {
+export const UpdateDivida = async (app: FastifyInstance) => {
+    app.withTypeProvider<ZodTypeProvider>().put("/divida/update/:id", {
         schema: {
             params: z.object({
                 id: z.string(),
@@ -28,8 +28,8 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
 
             try {
                 // Verificar se a dívida existe
-                const existingInvoice = await prisma.invoices.findUnique({
-                    where: { id_invoice: id },
+                const existingDivida = await prisma.dividas.findUnique({
+                    where: { id_divida: id },
                     include: {
                         clients: {
                             select: { name: true, nif: true }
@@ -37,7 +37,7 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
                     }
                 });
 
-                if (!existingInvoice) {
+                if (!existingDivida) {
                     const duration = Date.now() - startTime;
 
                     await logger.warning({
@@ -46,7 +46,7 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
                         user_id: userId,
                         details: `Tentativa de atualizar dívida inexistente. ID: ${id}`,
                         ip,
-                        resource: "invoices",
+                        resource: "dividas",
                         resource_id: id,
                         duration,
                     });
@@ -57,7 +57,7 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
                 }
 
                 // Verificar se o cliente existe (se foi alterado)
-                if (client_id !== existingInvoice.client_id) {
+                if (client_id !== existingDivida.client_id) {
                     const clientExists = await prisma.clients.findUnique({
                         where: { id_client: client_id },
                         select: { id_client: true, name: true }
@@ -72,7 +72,7 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
                             user_id: userId,
                             details: `Tentativa de atualizar dívida com cliente inexistente. Client ID: ${client_id}`,
                             ip,
-                            resource: "invoices",
+                            resource: "dividas",
                             resource_id: id,
                             duration,
                         });
@@ -85,30 +85,30 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
 
                 // Montar lista de alterações para o log
                 const alteracoes: string[] = [];
-                const clienteNome = (existingInvoice as any).clients?.name || "N/A";
-                const clienteNif = (existingInvoice as any).clients?.nif || "N/A";
+                const clienteNome = (existingDivida as any).clients?.name || "N/A";
+                const clienteNif = (existingDivida as any).clients?.nif || "N/A";
 
-                if (existingInvoice.client_id !== client_id) {
-                    alteracoes.push(`Cliente alterado: ${existingInvoice.client_id} → ${client_id}`);
+                if (existingDivida.client_id !== client_id) {
+                    alteracoes.push(`Cliente alterado: ${existingDivida.client_id} → ${client_id}`);
                 }
 
-                if (Number(existingInvoice.price) !== Number(price)) {
-                    alteracoes.push(`Valor: ${Number(existingInvoice.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} → ${Number(price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}`);
+                if (Number(existingDivida.price) !== Number(price)) {
+                    alteracoes.push(`Valor: ${Number(existingDivida.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} → ${Number(price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}`);
                 }
 
-                if (existingInvoice.date?.toISOString() !== new Date(date).toISOString()) {
-                    alteracoes.push(`Data: ${existingInvoice.date?.toISOString()} → ${new Date(date).toISOString()}`);
+                if (existingDivida.date?.toISOString() !== new Date(date).toISOString()) {
+                    alteracoes.push(`Data: ${existingDivida.date?.toISOString()} → ${new Date(date).toISOString()}`);
                 }
 
-                if (existingInvoice.approval !== approval) {
-                    const estadoAntigo = existingInvoice.approval === 'NAO_PAGAS' ? 'Pendente' : 'Paga';
+                if (existingDivida.approval !== approval) {
+                    const estadoAntigo = existingDivida.approval === 'NAO_PAGAS' ? 'Pendente' : 'Paga';
                     const estadoNovo = approval === 'NAO_PAGAS' ? 'Pendente' : 'Paga';
                     alteracoes.push(`Estado: ${estadoAntigo} → ${estadoNovo}`);
                 }
 
-                const invoice = await prisma.invoices.update({
+                const divida = await prisma.dividas.update({
                     where: {
-                        id_invoice: id,
+                        id_divida: id,
                     },
                     data: {
                         client_id,
@@ -122,7 +122,7 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
                 const duration = Date.now() - startTime;
 
                 // LOG ESPECIAL quando a dívida é paga
-                if (existingInvoice.approval === 'NAO_PAGAS' && approval === 'PAGAS') {
+                if (existingDivida.approval === 'NAO_PAGAS' && approval === 'PAGAS') {
                     await logger.success({
                         action: "Pagamento de Dívida",
                         user,
@@ -133,7 +133,7 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
                                  `Valor pago: ${Number(price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} | ` +
                                  `Data: ${new Date(date).toISOString()}`,
                         ip,
-                        resource: "invoices",
+                        resource: "dividas",
                         resource_id: id,
                         duration,
                     });
@@ -149,13 +149,13 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
                                     ? `Alterações: ${alteracoes.join('; ')}` 
                                     : 'Nenhuma alteração detectada'),
                         ip,
-                        resource: "invoices",
+                        resource: "dividas",
                         resource_id: id,
                         duration,
                     });
                 }
 
-                return reply.status(200).send(invoice);
+                return reply.status(200).send(divida);
 
             } catch (error: any) {
                 const duration = Date.now() - startTime;
@@ -166,7 +166,7 @@ export const UpdateInvoice = async (app: FastifyInstance) => {
                     user_id: userId,
                     details: `Erro ao atualizar dívida ID ${id}: ${error.message}`,
                     ip,
-                    resource: "invoices",
+                    resource: "dividas",
                     resource_id: id,
                     duration,
                 });

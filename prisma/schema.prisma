@@ -147,7 +147,7 @@ model clients {
   nif        String?
   created_at DateTime   @default(now())
   updated_at DateTime
-  invoices   invoices[]
+  dividas   dividas[]
 }
 
 model estoque {
@@ -171,20 +171,20 @@ model system_config {
   @@map("system_config")
 }
 
-model invoices {
-  id_invoice String            @id
+model dividas {
+  id_divida String            @id
   client_id  String
   product_id String
   price      String
   date       DateTime
   created_at DateTime          @default(now())
   updated_at DateTime
-  approval   invoices_approval @default(NAO_PAGAS)
-  clients    clients           @relation(fields: [client_id], references: [id_client], onDelete: Cascade, map: "Invoices_client_id_fkey")
-  products   products          @relation(fields: [product_id], references: [id_product], onDelete: Cascade, map: "Invoices_product_id_fkey")
+  approval   dividas_approval @default(NAO_PAGAS)
+  clients    clients           @relation(fields: [client_id], references: [id_client], onDelete: Cascade, map: "Dividas_client_id_fkey")
+  products   products          @relation(fields: [product_id], references: [id_product], onDelete: Cascade, map: "Dividas_product_id_fkey")
 
-  @@index([client_id], map: "Invoices_client_id_fkey")
-  @@index([product_id], map: "Invoices_product_id_fkey")
+  @@index([client_id], map: "Dividas_client_id_fkey")
+  @@index([product_id], map: "Dividas_product_id_fkey")
 }
 
 model products {
@@ -200,7 +200,7 @@ model products {
   totalLucro    String?
   estado        products_estado        @default(NAO_VENDIDO)
   category      String?
-  invoices      invoices[]
+  dividas      dividas[]
 }
 
 model fornecedores {
@@ -295,7 +295,7 @@ enum estoque_estado {
   EXPIRADO
 }
 
-enum invoices_approval {
+enum dividas_approval {
   PAGAS
   NAO_PAGAS
 }

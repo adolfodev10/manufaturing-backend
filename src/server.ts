@@ -18,8 +18,8 @@ import { DeleteProduct } from "./routes/Product/delete";
 import { EditProduct } from "./routes/Product/update";
 import { UpdateUser } from "./routes/User/update";
 import { DeleteUser } from "./routes/User/delete";
-import { CreateInvoice } from "./routes/Invoices/create";
-import { GetAllInvoice } from "./routes/Invoices/get";
+import { CreateDivida } from "./routes/Dividas/create";
+import { GetAllDivida } from "./routes/Dividas/get";
 import { AddProductInStock } from "./routes/Product/add";
 import socketPlugin from "./plugins/socket";
 import { deleteProduct } from "./routes/Stock/delete";
@@ -28,9 +28,9 @@ import { EditStock } from "./routes/Stock/update";
 import { GetAllProductStock } from "./routes/Stock/get";
 import { GetAllVenda } from "./routes/Venda/get";
 import { CreateVenda } from "./routes/Venda/create";
-import { DeleteInvoice } from "./routes/Invoices/delete";
-import { GetInvoicesByClientId } from "./routes/Invoices/getById";
-import { UpdateInvoice } from "./routes/Invoices/update";
+import { DeleteDivida } from "./routes/Dividas/delete";
+import { GetDividasByClientId } from "./routes/Dividas/getById";
+import { UpdateDivida } from "./routes/Dividas/update";
 import { CreateLog } from "./routes/Logs/create";
 import { GetLogs } from "./routes/Logs/get";
 import { GetLogById } from "./routes/Logs/getById";
@@ -153,12 +153,12 @@ app.register(DeleteClient);
 app.register(UpdateClient);
 app.register(GetClient);
 
-//Invoice
-app.register(CreateInvoice);
-app.register(GetAllInvoice);
-app.register(DeleteInvoice);
-app.register(GetInvoicesByClientId);
-app.register(UpdateInvoice);
+// Divida
+app.register(CreateDivida);
+app.register(GetAllDivida);
+app.register(DeleteDivida);
+app.register(GetDividasByClientId);
+app.register(UpdateDivida);
 
 //Logs 
 app.register(CreateLog);

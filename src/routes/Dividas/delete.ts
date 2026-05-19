@@ -4,8 +4,8 @@ import { ZodTypeProvider } from "fastify-type-provider-zod"
 import { prisma } from "../../lib/prismaclient";
 import { logger } from "../../modules/services/logs/logger";
 
-export const DeleteInvoice = async (app: FastifyInstance) => {
-    app.withTypeProvider<ZodTypeProvider>().delete('/invoice/delete/:id', {
+export const DeleteDivida = async (app: FastifyInstance) => {
+    app.withTypeProvider<ZodTypeProvider>().delete('/divida/delete/:id', {
         schema: {
             params: z.object({
                 id: z.string().nonempty("O campo id é obrigatório."),
@@ -20,8 +20,8 @@ export const DeleteInvoice = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                const invoice = await prisma.invoices.findUnique({
-                    where: { id_invoice: id },
+                const divida = await prisma.dividas.findUnique({
+                    where: { id_divida: id },
                     include: {
                         clients: {
                             select: {
@@ -32,7 +32,7 @@ export const DeleteInvoice = async (app: FastifyInstance) => {
                     }
                 });
 
-                if (!invoice) {
+                if (!divida) {
                     const duration = Date.now() - startTime;
 
                     await logger.warning({
@@ -41,7 +41,7 @@ export const DeleteInvoice = async (app: FastifyInstance) => {
                         user_id: userId,
                         details: `Tentativa de eliminar dívida inexistente. ID: ${id}`,
                         ip,
-                        resource: "invoices",
+                        resource: "dividas",
                         resource_id: id,
                         duration,
                     });
@@ -50,20 +50,20 @@ export const DeleteInvoice = async (app: FastifyInstance) => {
                 }
 
                 // Guardar informações antes de eliminar para o log
-                const invoiceInfo = {
-                    id: invoice.id_invoice,
-                    cliente: (invoice as any).client?.name || "N/A",
-                    nif: (invoice as any).client?.nif || "N/A",
-                    valor: invoice.price,
-                    estado: invoice.approval,
-                    produto: invoice.product_id || "N/A",
-                    data: invoice.date,
-                    criado_em: invoice.created_at,
+                const dividaInfo = {
+                    id: divida.id_divida,
+                    cliente: (divida as any).client?.name || "N/A",
+                    nif: (divida as any).client?.nif || "N/A",
+                    valor: divida.price,
+                    estado: divida.approval,
+                    produto: divida.product_id || "N/A",
+                    data: divida.date,
+                    criado_em: divida.created_at,
                 };
 
-                await prisma.invoices.delete({
+                await prisma.dividas.delete({
                     where: {
-                        id_invoice: id,
+                        id_divida: id,
                     },
                 });
 
@@ -74,14 +74,14 @@ export const DeleteInvoice = async (app: FastifyInstance) => {
                     user,
                     user_id: userId,
                     details: `Dívida eliminada com sucesso. ` +
-                             `ID: ${invoiceInfo.id} | ` +
-                             `Cliente: ${invoiceInfo.cliente} (NIF: ${invoiceInfo.nif}) | ` +
-                             `Valor: ${Number(invoiceInfo.valor).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} | ` +
-                             `Estado: ${invoiceInfo.estado === 'NAO_PAGAS' ? 'Pendente' : 'Paga'} | ` +
-                             `Produto: ${invoiceInfo.produto} | ` +
-                             `Data: ${new Date(invoiceInfo.data).toISOString()}`,
+                             `ID: ${dividaInfo.id} | ` +
+                             `Cliente: ${dividaInfo.cliente} (NIF: ${dividaInfo.nif}) | ` +
+                             `Valor: ${Number(dividaInfo.valor).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} | ` +
+                             `Estado: ${dividaInfo.estado === 'NAO_PAGAS' ? 'Pendente' : 'Paga'} | ` +
+                             `Produto: ${dividaInfo.produto} | ` +
+                             `Data: ${new Date(dividaInfo.data).toISOString()}`,
                     ip,
-                    resource: "invoices",
+                    resource: "dividas",
                     resource_id: id,
                     duration,
                 });
@@ -97,7 +97,7 @@ export const DeleteInvoice = async (app: FastifyInstance) => {
                     user_id: userId,
                     details: `Erro ao eliminar dívida ID ${id}: ${error.message}`,
                     ip,
-                    resource: "invoices",
+                    resource: "dividas",
                     resource_id: id,
                     duration,
                 });
