@@ -30,7 +30,7 @@ export const GetClient = async (app: FastifyInstance) => {
                 // Contar total de faturas por cliente
                 const clientsWithStats = await Promise.all(
                     clients.map(async (client) => {
-                        const totalFaturas = await prisma.invoices.count({
+                        const totalFaturas = await prisma.dividas.count({
                             where: { client_id: client.id_client }
                         });
 

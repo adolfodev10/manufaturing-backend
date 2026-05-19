@@ -23,7 +23,7 @@ export const GetBackupConfig = async (app: FastifyInstance) => {
                             frequency: "daily",
                             time: "02:00",
                             retention_days: 30,
-                            tables: JSON.stringify(["users", "clients", "invoices", "products", "sales"]),
+                            tables: JSON.stringify(["users", "clients", "dividas", "products", "sales"]),
                             compression: true,
                             encryption: false,
                         },

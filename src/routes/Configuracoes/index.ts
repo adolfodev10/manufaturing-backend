@@ -92,7 +92,7 @@ const defaultConfigs = {
     backup_frequency: "daily",
     backup_time: "02:00",
     backup_retention_days: 30,
-    backup_tables: ["users", "clients", "invoices", "products", "sales"],
+    backup_tables: ["users", "clients", "dividas", "products", "sales"],
     backup_compression: true,
     backup_encryption: false,
     backup_location: "/backups",

@@ -50,7 +50,7 @@ export const DeleteClient = async (app: FastifyInstance) => {
                 };
 
                 // Verificar se o cliente tem faturas associadas
-                const faturasCount = await prisma.invoices.count({
+                const faturasCount = await prisma.dividas.count({
                     where: { client_id: id }
                 });
 
