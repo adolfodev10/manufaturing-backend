@@ -74,7 +74,6 @@ export const CreateFatura = async (app: FastifyInstance) => {
           empresa,
           itens,
           totais,
-          formaPagamento,
           operador,
           operadorId,
           hashFiscal,
@@ -115,7 +114,6 @@ export const CreateFatura = async (app: FastifyInstance) => {
             impostos: totais.impostos,
             descontos: totais.descontos || 0,
             totalPagar: totais.totalPagar,
-            formaPagamento: formaPagamento,
             operador,
             operadorId,
             status: "EMITIDA",
@@ -152,7 +150,7 @@ export const CreateFatura = async (app: FastifyInstance) => {
           ip,
           resource: "faturas",
           resource_id: fatura.id_fatura,
-          new_value: JSON.stringify({ numero, totalPagar: totais.totalPagar, formaPagamento }),
+          new_value: JSON.stringify({ numero, totalPagar: totais.totalPagar }),
           duration,
         });
 
