@@ -187,6 +187,71 @@ model dividas {
   @@index([product_id], map: "Dividas_product_id_fkey")
 }
 
+model faturas {
+  id_fatura String            @id @default(uuid())
+  numero     String           @unique
+  dataEmissao       DateTime
+  dataVencimento    DateTime?
+
+  clienteNome   String
+  clienteNIF    String?
+  clienteEndereco String?
+  clienteTelefone  String?
+  clienteEmail     String?
+  clienteCodigo  String?
+
+
+  empresaNome  String?
+  empresaNIF   String?
+  empresaEndereco String?
+  empresaTelefone  String?
+  empresaEmail     String?
+
+
+  subtotal Float
+  impostos Float
+  descontos Float?  @default(0)
+  totalPagar Float
+
+
+  operador    String
+  operadorId  String?
+
+
+  status      String      @default("EMITIDA")
+  statusAGT  String?     @default("PENDENTE")
+
+
+  hashFiscal String?
+  qrCodeData String?    @db.LongText
+  codigoValidacao   String?
+
+
+  itens    faturaItem[]  
+
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+
+  @@map("faturas")
+}
+
+model faturaItem {
+  id         String   @id @default(uuid())
+  faturaId    String
+  codigo     String?
+  descricao   String
+  quantidade  Int
+  precoUnitario Float
+  desconto    Float?  @default(0)
+  impostos    Float
+  total       Float
+  taxaIVA     Float   @default(14)
+
+  fatura      faturas  @relation(fields: [faturaId], references: [id_fatura], onDelete: Cascade)
+
+  @@map("fatura_items")
+}
+
 model products {
   id_product    String                 @id
   name_product  String
