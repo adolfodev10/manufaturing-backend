@@ -63,6 +63,9 @@ import { GetFornecedorById } from "./routes/Fornecedores/getById";
 import { UpdateFornecedor } from "./routes/Fornecedores/update";
 import { DeleteFornecedor } from "./routes/Fornecedores/delete";
 import { ConfiguracoesRoutes } from "./routes/Configuracoes";
+import { GetAllFaturas, GetFaturaById, GetFaturaByNumero } from "./routes/Faturas/get";
+import { CreateFatura } from "./routes/Faturas/create";
+import { UpdateFatura } from "./routes/Faturas/update";
 
 // import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
 
@@ -183,6 +186,16 @@ app.register(ListarPermissoes);
 app.register(BuscarPermissaoPorId);
 app.register(AtualizarPermissao);
 app.register(DeletarPermissao);
+
+
+// Faturas
+
+app.register(GetAllFaturas);
+app.register(GetFaturaById);
+app.register(GetFaturaByNumero);
+app.register(CreateFatura);
+app.register(UpdateFatura);
+
 
 //Perfil
 
