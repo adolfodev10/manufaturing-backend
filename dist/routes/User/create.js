@@ -10,44 +10,79 @@ const CreateUser = async (app) => {
             body: create_1.createUserSchema
         },
     }, async (req, res) => {
-        const { name, email, senha, phone_number, avatar, born, funcao_id } = req.body;
+        const { name, email, senha, phone_number, avatar, born, role, user_status } = req.body;
         const userExists = await prismaclient_1.prisma.users.findFirst({
             where: {
                 OR: [
-                    {
-                        email,
-                    },
-                    {
-                        phone_number,
-                    }
+                    { email },
+                    { phone_number: phone_number || undefined }
                 ]
             }
         });
         if (userExists) {
-            return res.status(400).send({ error: 'Email or Phone Number already exists' });
-        }
-        const funcao = await prismaclient_1.prisma.funcao.findUnique({
-            where: {
-                id_funcao: funcao_id,
-            },
-        });
-        if (!funcao) {
-            return res.status(404).send({ error: 'Funcao not found' });
+            return res.status(400).send({
+                error: 'Email or Phone Number already exists',
+                field: userExists.email === email ? 'email' : 'phone_number'
+            });
         }
         const hashedPassword = await (0, hashPassword_1.hashPassword)(senha);
-        const user = await prismaclient_1.prisma.users.create({
-            data: {
-                name,
-                email,
-                senha: hashedPassword,
-                phone_number,
-                avatar,
-                born,
-                funcao_id,
-                user_status: 'ACTIVO',
-            },
-        });
-        return res.status(201).send(user);
+        const validRoles = ["OPERADOR", "GERENTE", "ADMINISTRADOR"];
+        let userRole = "OPERADOR";
+        if (role) {
+            const normalizedRole = role.toUpperCase();
+            if (validRoles.includes(normalizedRole)) {
+                userRole = normalizedRole;
+            }
+            else {
+                return res.status(400).send({
+                    error: "Role inválida. As opções válidas são: OPERADOR, GERENTE, ADMINISTRADOR"
+                });
+            }
+        }
+        try {
+            if (!born) {
+                return res.status(400).send({ error: "Data de nascimento é obrigatória" });
+            }
+            const bornDate = new Date(born);
+            if (isNaN(bornDate.getTime())) {
+                return res.status(400).send({ error: "Data de nascimento inválida" });
+            }
+            const user = await prismaclient_1.prisma.users.create({
+                data: {
+                    name,
+                    email,
+                    senha: hashedPassword,
+                    phone_number: phone_number || null,
+                    avatar: avatar || null,
+                    born: bornDate,
+                    role: userRole,
+                    user_status: "ACTIVO",
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                },
+            });
+            await prismaclient_1.prisma.notification.create({
+                data: {
+                    user_id: user.id_user,
+                    message: "Seja Bem-vindo ao sistema!",
+                    created_at: new Date(),
+                    updated_at: new Date(),
+                }
+            });
+            const { senha: _, ...userWithoutPassword } = user;
+            return res.status(201).send({
+                success: true,
+                messge: "Usuário criado com sucesso",
+                user: userWithoutPassword
+            });
+        }
+        catch (error) {
+            console.error("Error creating user:", error);
+            return res.status(500).send({
+                error: "Erro interno ao criar usuário",
+                details: process.env.NODE_ENV === 'development' ? error : undefined
+            });
+        }
     });
 };
 exports.CreateUser = CreateUser;

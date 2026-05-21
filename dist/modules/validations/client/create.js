@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 // export const ERROR_MESSAGES = {
 //     CLIENT_NAME_EXISTS: 'Client name already exists',
 //     USER_HAS_CLIENT : 'User already has a client',

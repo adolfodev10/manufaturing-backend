@@ -1,0 +1,142 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GetDividasByClientId = void 0;
+const zod_1 = __importDefault(require("zod"));
+const prismaclient_1 = require("../../lib/prismaclient");
+const logger_1 = require("../../modules/services/logs/logger");
+const GetDividasByClientId = async (app) => {
+    app.withTypeProvider().get("/divida/client/:client_id", {
+        schema: {
+            params: zod_1.default.object({
+                client_id: zod_1.default.string(),
+            })
+        }
+    }, async (req, reply) => {
+        const startTime = Date.now();
+        const { client_id } = req.params;
+        const ip = req.ip || req.socket.remoteAddress || "unknown";
+        const user = req.user?.email || "sistema";
+        const userId = req.user?.id;
+        try {
+            // Verificar se o cliente existe primeiro
+            const client = await prismaclient_1.prisma.clients.findUnique({
+                where: { id_client: client_id },
+                select: { id_client: true, name: true, nif: true }
+            });
+            if (!client) {
+                const duration = Date.now() - startTime;
+                await logger_1.logger.warning({
+                    action: "Listar Dívidas por Cliente",
+                    user,
+                    user_id: userId,
+                    details: `Tentativa de listar dívidas de cliente inexistente. Client ID: ${client_id}`,
+                    ip,
+                    resource: "dividas",
+                    duration,
+                });
+                return reply.status(404).send({
+                    message: "Cliente não encontrado"
+                });
+            }
+            const dividas = await prismaclient_1.prisma.dividas.findMany({
+                where: {
+                    client_id: client_id, // 👈 CORRIGIDO: usar client_id direto
+                },
+                include: {
+                    products: {
+                        select: {
+                            name_product: true,
+                            price: true,
+                        }
+                    }
+                },
+                orderBy: {
+                    date: 'desc',
+                },
+            });
+            // Estatísticas do cliente
+            const totalDividas = dividas.length;
+            const totalPendentes = dividas.filter(d => d.approval === 'NAO_PAGAS').length;
+            const totalPagas = dividas.filter(d => d.approval === 'PAGAS').length;
+            const valorPendente = dividas
+                .filter(d => d.approval === 'NAO_PAGAS')
+                .reduce((sum, d) => sum + Number(d.price), 0);
+            const valorTotal = dividas.reduce((sum, d) => sum + Number(d.price), 0);
+            const duration = Date.now() - startTime;
+            if (dividas.length === 0) {
+                await logger_1.logger.success({
+                    action: "Listar Dívidas por Cliente",
+                    user,
+                    user_id: userId,
+                    details: `Cliente "${client.name}" (NIF: ${client.nif || 'N/A'}) não possui dívidas. Client ID: ${client_id}`,
+                    ip,
+                    resource: "dividas",
+                    duration,
+                });
+                return reply.status(200).send({
+                    message: "Cliente sem dívidas",
+                    cliente: {
+                        id: client.id_client,
+                        nome: client.name,
+                        nif: client.nif,
+                    },
+                    dividas: [],
+                    resumo: {
+                        total: 0,
+                        pendentes: 0,
+                        pagas: 0,
+                        valor_pendente: 0,
+                        valor_total: 0,
+                    }
+                });
+            }
+            await logger_1.logger.success({
+                action: "Listar Dívidas por Cliente",
+                user,
+                user_id: userId,
+                details: `Dívidas do cliente "${client.name}" (NIF: ${client.nif || 'N/A'}) listadas. ` +
+                    `Total: ${totalDividas} | Pendentes: ${totalPendentes} | Pagas: ${totalPagas} | ` +
+                    `Valor pendente: ${valorPendente.toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}`,
+                ip,
+                resource: "dividas",
+                duration,
+            });
+            return reply.status(200).send({
+                cliente: {
+                    id: client.id_client,
+                    nome: client.name,
+                    nif: client.nif,
+                },
+                dividas,
+                resumo: {
+                    total: totalDividas,
+                    pendentes: totalPendentes,
+                    pagas: totalPagas,
+                    valor_pendente: valorPendente,
+                    valor_total: valorTotal,
+                }
+            });
+        }
+        catch (error) {
+            const duration = Date.now() - startTime;
+            await logger_1.logger.error({
+                action: "Listar Dívidas por Cliente",
+                user,
+                user_id: userId,
+                details: `Erro ao listar dívidas do cliente ID ${client_id}: ${error.message}`,
+                ip,
+                resource: "dividas",
+                duration,
+            });
+            console.error("Erro ao listar dívidas por cliente:", error);
+            return reply.status(500).send({
+                error: "Erro ao listar dívidas",
+                message: error.message
+            });
+        }
+    });
+};
+exports.GetDividasByClientId = GetDividasByClientId;

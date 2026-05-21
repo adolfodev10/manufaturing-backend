@@ -4,7 +4,7 @@ exports.GetAllProductStock = void 0;
 const prismaclient_1 = require("../../lib/prismaclient");
 const GetAllProductStock = async (app) => {
     app.withTypeProvider().get('/stock/getAll', {}, async (req, reply) => {
-        const stock = await prismaclient_1.prisma.stock.findMany({});
+        const stock = await prismaclient_1.prisma.estoque.findMany({});
         return reply.status(200).send(stock);
     });
 };

@@ -12,6 +12,7 @@
 //                 status: "NAO_VENDIDO",
 //             },
 //         });
+Object.defineProperty(exports, "__esModule", { value: true });
 //         if (expirados.length) {
 //             expirados.forEach((p) => {
 //                fastify.io.emit("admin_notification", {

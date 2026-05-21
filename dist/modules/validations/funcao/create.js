@@ -9,8 +9,8 @@ exports.singleFuncaoSchema = zod_1.default.object({
     name_funcao: zod_1.default.string()
         .min(3, { message: 'Name must be at least 3 characters long' })
         .refine((value) => value.trim() !== '', { message: 'Name must not be empty' }),
-    description: zod_1.default.string()
-        .min(10, { message: 'Description must be at least 10 characters long' })
+    category: zod_1.default.string()
+        .min(10, { message: 'Category must be at least 10 characters long' })
         .optional(),
     user: zod_1.default.string().uuid().optional(),
 });
