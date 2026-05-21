@@ -52,8 +52,7 @@ export const UpdateFatura = async (app: FastifyInstance) => {
 
         const duration = Date.now() - startTime;
 
-        logger.logSync({
-          level: "SUCCESS",
+        logger.success({
           action: "Atualizar Fatura",
           user,
           user_id: userId,
@@ -73,8 +72,7 @@ export const UpdateFatura = async (app: FastifyInstance) => {
       } catch (error) {
         const duration = Date.now() - startTime;
 
-        logger.logSync({
-          level: "ERROR",
+        logger.error({
           action: "Atualizar Fatura",
           user,
           user_id: userId,

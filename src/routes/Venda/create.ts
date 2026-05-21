@@ -61,8 +61,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
 
                 const duration = Date.now() - startTime;
 
-                logger.logSync({
-                    level: "SUCCESS",
+                logger.success({
                     action: "Criar Venda",
                     user:  user,
                     details: `Venda criada: ${name_product} - Qtd: ${quantity} - Preço: ${price}`,
@@ -78,8 +77,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
             } catch (error) {
                 const duration = Date.now() - startTime;
 
-                logger.logSync({
-                    level: "ERROR",
+                logger.error({
                     action: "Criar Venda",
                     user,
                     details: `Erro ao criar venda: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
