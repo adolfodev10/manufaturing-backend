@@ -1,7 +1,8 @@
+// src/routes/Logs/create.ts
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import z from "zod";
-import { prisma } from "../../lib/prismaclient";
+import { createLog } from "./log.service";
 
 export const CreateLog = async (app: FastifyInstance) => {
     app.withTypeProvider<ZodTypeProvider>().post("/logs/create", {
@@ -22,36 +23,7 @@ export const CreateLog = async (app: FastifyInstance) => {
         },
     },
         async (req, reply) => {
-            const { 
-                level, 
-                action, 
-                user, 
-                user_id, 
-                details, 
-                ip, 
-                resource, 
-                resource_id,
-                old_value,
-                new_value,
-                duration 
-            } = req.body;
-
-            const log = await prisma.logs.create({
-                data: {
-                    level,
-                    action,
-                    user,
-                    user_id,
-                    details,
-                    ip,
-                    resource,
-                    resource_id,
-                    old_value: old_value || undefined,
-                    new_value: new_value || undefined,
-                    duration,
-                },
-            });
-
+            const log = await createLog(req.body);
             return reply.status(201).send(log);
         }
     );
