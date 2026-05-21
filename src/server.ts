@@ -1,6 +1,9 @@
 import { fastify } from "./lib/fastify";
+
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
+
 import fastifyCors from "@fastify/cors";
+
 import { RootRoute } from './routes/root-route';
 import { DeleteClient } from './routes/Client/delete';
 import { CreateClient } from './routes/Client/create';
