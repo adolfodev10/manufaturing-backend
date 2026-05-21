@@ -1,9 +1,26 @@
-import {PrismaClient} from '@prisma/client'
+// // Para Prisma 7, a configuração é diferente
+// // Não use defineConfig diretamente do @prisma/client
 
-const globalForPrisma = globalThis as unknown as {prisma: PrismaClient}
+// // Opção 1: Configuração simples para MySQL
+// export default {
+//   adapter: 'mysql',
+//   url: process.env.DATABASE_URL,
+  
+//   // Configurações opcionais
+//   connectionLimit: 10,
+  
+//   // Logs
+//   log: process.env.NODE_ENV === 'development' 
+//     ? ['query', 'error', 'warn', 'info'] 
+//     : ['error'],
+    
+//   // Outras opções comuns
+//   transactionOptions: {
+//     maxWait: 5000,
+//     timeout: 10000,
+//   }
+// };
 
-export const prisma = globalForPrisma.prisma || new PrismaClient({
-    log: ['query'],
-})
+import { PrismaClient } from "@prisma/client";
 
-if(process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+export const prisma = new PrismaClient();
