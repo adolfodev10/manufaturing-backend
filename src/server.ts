@@ -85,6 +85,8 @@ app.register(fastifyCors, {
     'http://localhost:5174',
     'https://judy-farma.vercel.app',
     'https://judyfarma-support.vercel.app',
+    'https://eko-manufaturing.vercel.app',
+    'https://manufaturing-backend.onrender.com'
   ],
   credentials: true,
   methods: [
@@ -92,7 +94,8 @@ app.register(fastifyCors, {
     "DELETE",
     "PUT",
     "PATCH",
-    "OPTION"
+    "OPTION",
+    "GET",
   ]
 });
 
