@@ -8,31 +8,31 @@ datasource db {
 }
 
 model Users {
-  id_user              String                 @id @default(uuid())
-  name                 String
-  email                String                 @unique(map: "Users_email_key")
-  phone_number         String?                @unique(map: "Users_phone_number_key")
-  senha                String
-  avatar               String?
-  born                 DateTime
-  created_at           DateTime               @default(now())
-  updated_at           DateTime               @updatedAt
-  user_status          UserStatus             @default(ACTIVO)
-  role                 Role                   @default(OPERADOR)
-  perfis               UserPerfil[]
-  notifications        Notification[]
-  venda                venda[]            
+  id_user       String         @id @default(uuid())
+  name          String
+  email         String         @unique(map: "Users_email_key")
+  phone_number  String?        @unique(map: "Users_phone_number_key")
+  senha         String
+  avatar        String?
+  born          DateTime
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  user_status   UserStatus     @default(ACTIVO)
+  role          Role           @default(OPERADOR)
+  perfis        UserPerfil[]
+  notifications Notification[]
+  venda         venda[]
 
   @@map("users")
 }
 
 model Notification {
-  id    String @id @default(uuid())
-  user_id   String
-  message   String
-  created_at  DateTime    @default(now())
-  updated_at      DateTime    @updatedAt
-  user            Users       @relation(fields: [user_id], references: [id_user], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  user_id    String
+  message    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  user       Users    @relation(fields: [user_id], references: [id_user], onDelete: Cascade)
 }
 
 model Logs {
@@ -46,8 +46,8 @@ model Logs {
   ip          String?
   resource    String
   resource_id String?
-  old_value   String?  @db.LongText
-  new_value   String?  @db.LongText
+  old_value   String?  @db.Text
+  new_value   String?  @db.Text
   duration    Int?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
@@ -64,7 +64,7 @@ model Backups {
   status            String
   created_at        DateTime  @default(now())
   completed_at      DateTime?
-  tables            String    @db.LongText
+  tables            String    @db.Text
   records_count     Int       @default(0)
   location          String
   checksum          String?
@@ -82,7 +82,7 @@ model Perfil {
   nome           String       @unique
   descricao      String
   nivel          Int          @default(1)
-  permissoes     String       @db.LongText
+  permissoes     String       @db.Text
   usuarios_count Int          @default(0)
   is_default     Boolean      @default(false)
   is_system      Boolean      @default(false)
@@ -128,7 +128,7 @@ model BackupConfig {
   dayOfWeek          Int?
   dayOfMonth         Int?
   retention_days     Int       @default(30)
-  tables             String    @db.LongText
+  tables             String    @db.Text
   compression        Boolean   @default(true)
   encryption         Boolean   @default(false)
   notification_email String?
@@ -141,13 +141,13 @@ model BackupConfig {
 }
 
 model clients {
-  id_client  String     @id @default(uuid())
+  id_client  String    @id @default(uuid())
   name       String
   telefone   String
   nif        String?
-  created_at DateTime   @default(now())
+  created_at DateTime  @default(now())
   updated_at DateTime
-  dividas   dividas[]
+  dividas    dividas[]
 }
 
 model estoque {
@@ -163,91 +163,85 @@ model estoque {
 }
 
 model system_config {
-  id                      String   @id @default(uuid())
-  key                     String   @unique
-  value                   Json
-  updated_at              DateTime @updatedAt
+  id         String   @id @default(uuid())
+  key        String   @unique
+  value      Json
+  updated_at DateTime @updatedAt
 
   @@map("system_config")
 }
 
 model dividas {
-  id_divida String            @id
+  id_divida  String           @id
   client_id  String
   product_id String
   price      String
   date       DateTime
-  created_at DateTime          @default(now())
+  created_at DateTime         @default(now())
   updated_at DateTime
   approval   dividas_approval @default(NAO_PAGAS)
-  clients    clients           @relation(fields: [client_id], references: [id_client], onDelete: Cascade, map: "Dividas_client_id_fkey")
-  products   products          @relation(fields: [product_id], references: [id_product], onDelete: Cascade, map: "Dividas_product_id_fkey")
+  clients    clients          @relation(fields: [client_id], references: [id_client], onDelete: Cascade)
+  products   products         @relation(fields: [product_id], references: [id_product], onDelete: Cascade)
 
   @@index([client_id], map: "Dividas_client_id_fkey")
   @@index([product_id], map: "Dividas_product_id_fkey")
 }
 
 model faturas {
-  id_fatura String            @id @default(uuid())
-  numero     String           @unique
-  dataEmissao       DateTime
-  dataVencimento    DateTime?
+  id_fatura      String    @id @default(uuid())
+  numero         String    @unique
+  dataEmissao    DateTime
+  dataVencimento DateTime?
 
-  clienteNome   String
-  clienteNIF    String?
+  clienteNome     String
+  clienteNIF      String?
   clienteEndereco String?
-  clienteTelefone  String?
-  clienteEmail     String?
-  clienteCodigo  String?
+  clienteTelefone String?
+  clienteEmail    String?
+  clienteCodigo   String?
 
-
-  empresaNome  String?
-  empresaNIF   String?
+  empresaNome     String?
+  empresaNIF      String?
   empresaEndereco String?
-  empresaTelefone  String?
-  empresaEmail     String?
+  empresaTelefone String?
+  empresaEmail    String?
 
-
-  subtotal Float
-  impostos Float
-  descontos Float?  @default(0)
+  subtotal   Float
+  impostos   Float
+  descontos  Float? @default(0)
   totalPagar Float
 
+  operador   String
+  operadorId String?
 
-  operador    String
-  operadorId  String?
+  status    String  @default("EMITIDA")
+  statusAGT String? @default("PENDENTE")
 
+  hashFiscal      String?
+  qrCodeData      String? @db.Text
+  codigoValidacao String?
 
-  status      String      @default("EMITIDA")
-  statusAGT  String?     @default("PENDENTE")
+  itens faturaItem[]
 
-
-  hashFiscal String?
-  qrCodeData String?    @db.LongText
-  codigoValidacao   String?
-
-
-  itens    faturaItem[]  
-
-  created_at DateTime     @default(now())
-  updated_at DateTime     @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@map("faturas")
 }
 
 model faturaItem {
-  id         String   @id @default(uuid())
-  faturaId    String
-  codigo     String?
-  descricao   String
-  quantidade  Int
+  id            String  @id @default(uuid())
+  faturaId      String
+  codigo        String?
+  descricao     String
+  quantidade    Int
   precoUnitario Float
-  desconto    Float?  @default(0)
-  impostos    Float
-  total       Float
-  taxaIVA     Float   @default(14)
+  desconto      Float?  @default(0)
+  impostos      Float
+  total         Float
+  taxaIVA       Float   @default(14)
 
-  fatura      faturas  @relation(fields: [faturaId], references: [id_fatura], onDelete: Cascade)
+  fatura faturas @relation(fields: [faturaId], references: [id_fatura], onDelete: Cascade)
 
   @@map("fatura_items")
 }
@@ -265,34 +259,34 @@ model products {
   totalLucro    String?
   estado        products_estado        @default(NAO_VENDIDO)
   category      String?
-  dividas      dividas[]
+  dividas       dividas[]
 }
 
 model fornecedores {
-  id      String        @id     @default(uuid())
-  nome    String 
-  email   String      @unique 
-  telefone  String 
-  endereco    String?
-  nif         String?     @unique
-  prazo_pagamento Int?    @default(30)
-  created_at    DateTime    @default(now())
-  updated_at    DateTime @updatedAt
+  id              String   @id @default(uuid())
+  nome            String
+  email           String   @unique
+  telefone        String
+  endereco        String?
+  nif             String?  @unique
+  prazo_pagamento Int?     @default(30)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
-  compras     compras[]      
+  compras compras[]
 
   @@map("fornecedores")
 }
 
 model compras {
-  id        String      @id @default(uuid())
+  id            String       @id @default(uuid())
   fornecedor_id String
-  data_pedido   DateTime    @default(now())
-  data_entrega    DateTime?
-  valor_total     Decimal       @db.Decimal(15, 2)
-  fornecedor    fornecedores    @relation(fields: [fornecedor_id], references: [id], onDelete: Restrict)
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
+  data_pedido   DateTime     @default(now())
+  data_entrega  DateTime?
+  valor_total   Decimal      @db.Decimal(15, 2)
+  fornecedor    fornecedores @relation(fields: [fornecedor_id], references: [id], onDelete: Restrict)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
 
   @@index([fornecedor_id], map: "compras_fornecedor_idx")
   @@map("compras")
@@ -315,18 +309,18 @@ model venda {
 }
 
 model produtosExpirados {
-  id_expired   String   @id @default(uuid())
-  id_product   String
-  name_product String
-  category     String?
-  price        String
-  quantity     String
+  id_expired    String   @id @default(uuid())
+  id_product    String
+  name_product  String
+  category      String?
+  price         String
+  quantity      String
   date_validate DateTime
-  date_expired DateTime @default(now())
-  motivo       String   @default("Expirado automaticamente")
-  deleted_by   String?
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  date_expired  DateTime @default(now())
+  motivo        String   @default("Expirado automaticamente")
+  deleted_by    String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 
   @@map("produtosExpirados")
 }
