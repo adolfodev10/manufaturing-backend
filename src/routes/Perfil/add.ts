@@ -18,7 +18,7 @@ export const AtribuirPerfilUsuario = async (app: FastifyInstance) => {
             try {
                 const { atribuicoes } = req.body;
 
-                const results = [];
+                const results: Array<{ id: string; user_id: string; created_at: Date; perfil_id: string }> = [];
 
                 for (const atribuicao of atribuicoes) {
                     // Verificar se usuário existe
