@@ -1,10 +1,13 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"] // Opcional para melhor pool
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  connectionLimit = 20
+  poolTimeout = 30
 }
 
 model Users {
