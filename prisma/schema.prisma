@@ -116,7 +116,7 @@ model UserPerfil {
   user       Users    @relation(fields: [user_id], references: [id_user], onDelete: Cascade)
 
   @@unique([user_id, perfil_id])
-  @@index([perfil_id], map: "user_perfis_perfil_id_fkey")
+  @@index([perfil_id])
   @@map("user_perfis")
 }
 
