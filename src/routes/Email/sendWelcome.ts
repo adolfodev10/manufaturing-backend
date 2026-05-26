@@ -1,27 +1,11 @@
-import { FastifyInstance } from "fastify";
-import nodemailer from "nodemailer";
+import { FastifyInstance } from 'fastify';
+import { sendWelcomeEmail } from '../../modules/services/email/emailService';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-export const SendWelcomeEmail = async (app: FastifyInstance) => {
-  app.post("/email/send-welcome", async (req, reply) => {
-    const { to, subject, html } = req.body as any;
+export const SendWelcomeEmailRoute = async (app: FastifyInstance) => {
+  app.post('/email/send-welcome', async (req, reply) => {
+    const { to, name, password } = req.body as { to: string; name: string; password: string };
     
-    await transporter.sendMail({
-      from: `"Sistema" <${process.env.SMTP_FROM}>`,
-      to,
-      subject,
-      html,
-    });
-    
-    return reply.send({ success: true });
+    const success = await sendWelcomeEmail(to, name, password);
+    return reply.send({ success });
   });
 };
