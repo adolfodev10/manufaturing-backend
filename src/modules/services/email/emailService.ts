@@ -14,7 +14,7 @@ export async function sendWelcomeEmail(to: string, name: string, password: strin
   const mailOptions = {
     from: process.env.SMTP_FROM,
     to,
-    subject: 'Bem-vindo ao Sistema de Manufaturação',
+    subject: 'Bem-vindo ao Sistema de Manufaturação - EKO',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px;">
         <h2 style="color: #7c3aed;">Bem-vindo, ${name}! 🎉</h2>
