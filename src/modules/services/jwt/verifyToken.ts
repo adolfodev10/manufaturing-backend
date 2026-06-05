@@ -1,10 +1,18 @@
 import jwt from "jsonwebtoken";
 
-const JWT_TOKEN = process.env.JWT_SECRET || "ola-Mundo-5T";
+const getJwtSecret = () => {
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+        throw new Error("JWT_SECRET is required");
+    }
+
+    return secret;
+};
 
 export const verifyToken = async (token: string) => {
     try {
-        return jwt.verify(token, JWT_TOKEN);
+        return jwt.verify(token, getJwtSecret());
     } catch (error) {
         return null;
     }

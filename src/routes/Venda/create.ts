@@ -1,13 +1,13 @@
+import { randomUUID } from "crypto";
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
-import { prisma } from "../../lib/prismaclient";
-import { createVendaSchema } from "../../modules/validations/venda/create-venda";
-import { logger } from "../../modules/services/logs/logger";
-import { randomUUID } from "crypto";
 import z from "zod";
+import { prisma } from "../../lib/prismaclient";
+import { logger } from "../../modules/services/logs/logger";
+import { createVendaSchema } from "../../modules/validations/venda/create-venda";
 
 export const CreateVenda = async (app: FastifyInstance) => {
-    app.withTypeProvider<ZodTypeProvider>().post('/venda/create', {
+    app.withTypeProvider<ZodTypeProvider>().post("/venda/create", {
         schema: {
             body: createVendaSchema,
             params: z.object({}),
@@ -16,17 +16,13 @@ export const CreateVenda = async (app: FastifyInstance) => {
         async (req, res) => {
 
             const startTime = Date.now();
-            const ip = req.ip || req.socket.remoteAddress || 'unknown';
-            const user = (req as any).user?.name || 'sistema';
-            const {id_user} = req.body as any;
+            const ip = req.ip || req.socket.remoteAddress || "unknown";
+            const user = req.authenticatedUser?.name || "sistema";
+            const userId = req.authenticatedUser?.id_user;
 
-            const userId = await prisma.users.findFirst({
-                where: {
-                    id_user
-                }
-            })
-
-            console.log("🐛🐛🐛 User ID: ", userId);
+            if (!userId) {
+                return res.status(401).send({ error: "Usuario autenticado nao encontrado" });
+            }
 
             try {
                 const {
@@ -39,7 +35,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
                     date_validate,
                     quantity,
                     created_at,
-                    updated_at
+                    updated_at,
                 } = req.body;
 
                 const venda = await prisma.venda.create({
@@ -55,7 +51,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
                         created_at: new Date(created_at),
                         updated_at: new Date(updated_at),
                         id: randomUUID(),
-                        user_id: userId?.id_user
+                        user_id: userId,
                     },
                 });
 
@@ -63,8 +59,8 @@ export const CreateVenda = async (app: FastifyInstance) => {
 
                 logger.success({
                     action: "Criar Venda",
-                    user:  user,
-                    details: `Venda criada: ${name_product} - Qtd: ${quantity} - Preço: ${price}`,
+                    user,
+                    details: `Venda criada: ${name_product} - Qtd: ${quantity} - Preco: ${price}`,
                     ip,
                     resource: "vendas",
                     resource_id: venda.id,
@@ -80,11 +76,11 @@ export const CreateVenda = async (app: FastifyInstance) => {
                 logger.error({
                     action: "Criar Venda",
                     user,
-                    details: `Erro ao criar venda: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+                    details: `Erro ao criar venda: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
                     ip,
                     resource: "vendas",
                     duration,
-                    old_value: JSON.stringify(req.body), // 👈 String, não Object
+                    old_value: JSON.stringify(req.body),
                 });
 
                 console.error("Erro ao criar venda:", error);

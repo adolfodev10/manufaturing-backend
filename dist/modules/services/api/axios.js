@@ -5,8 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.api = void 0;
 const axios_1 = __importDefault(require("axios"));
-const apiUrl = "http://localhost:3300";
+const localUrl = "http://localhost:3300";
+// const apiUrl = "https://manufaturing-backend.onrender.com";
 exports.api = axios_1.default.create({
-    baseURL: apiUrl,
+    // baseURL: apiUrl,
+    baseURL: localUrl,
     withCredentials: true
 });

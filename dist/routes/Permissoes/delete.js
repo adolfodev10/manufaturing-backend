@@ -16,23 +16,30 @@ const DeletarPermissao = async (app) => {
     }, async (req, reply) => {
         try {
             const { id } = req.params;
-            // Verificar se a permissão existe
             const permissaoExistente = await prismaclient_1.prisma.permissao.findUnique({
                 where: { id },
             });
             if (!permissaoExistente) {
-                return reply.status(404).send({ error: "Permissão não encontrada" });
+                return reply.status(404).send({ error: "Permissao nao encontrada" });
             }
-            // Verificar se a permissão está sendo usada por algum perfil/grupo
-            const perfisComPermissao = await prismaclient_1.prisma.permissao.count({
-                where: {
-                    id,
+            const perfis = await prismaclient_1.prisma.perfil.findMany({
+                select: {
+                    permissoes: true,
                 },
             });
+            const perfisComPermissao = perfis.filter((perfil) => {
+                try {
+                    const permissoes = JSON.parse(perfil.permissoes);
+                    return Array.isArray(permissoes) && permissoes.includes(id);
+                }
+                catch {
+                    return false;
+                }
+            }).length;
             if (perfisComPermissao > 0) {
                 return reply.status(400).send({
-                    error: "Não é possível excluir esta permissão pois ela está associada a um ou mais perfis",
-                    perfisCount: perfisComPermissao
+                    error: "Nao e possivel excluir esta permissao pois ela esta associada a um ou mais perfis",
+                    perfisCount: perfisComPermissao,
                 });
             }
             await prismaclient_1.prisma.permissao.delete({
@@ -41,8 +48,8 @@ const DeletarPermissao = async (app) => {
             return reply.status(204).send();
         }
         catch (error) {
-            console.error("Erro ao deletar permissão:", error);
-            return reply.status(500).send({ error: "Erro ao deletar permissão" });
+            console.error("Erro ao deletar permissao:", error);
+            return reply.status(500).send({ error: "Erro ao deletar permissao" });
         }
     });
 };

@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("dotenv/config");
 const fastify_1 = require("./lib/fastify");
 const fastify_type_provider_zod_1 = require("fastify-type-provider-zod");
 const cors_1 = __importDefault(require("@fastify/cors"));
@@ -71,27 +72,35 @@ const Configuracoes_1 = require("./routes/Configuracoes");
 const get_12 = require("./routes/Faturas/get");
 const create_12 = require("./routes/Faturas/create");
 const update_9 = require("./routes/Faturas/update");
-// import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
+const sendWelcome_1 = require("./routes/Email/sendWelcome");
+const authenticate_1 = require("./modules/services/auth/authenticate");
+const getUserByFuncao_1 = require("./routes/User/getUserByFuncao");
+const prismaclient_1 = require("./lib/prismaclient");
 const app = fastify_1.fastify;
 const port = Number(process.env.PORT) || 3300;
+const corsOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://judy-farma.vercel.app',
+    'https://judyfarma-support.vercel.app',
+    'https://eko-manufaturing.vercel.app',
+    'https://manufaturing-backend.onrender.com',
+    process.env.CROSS_ORIGIN,
+].filter(Boolean);
 app.setValidatorCompiler(fastify_type_provider_zod_1.validatorCompiler);
 app.setSerializerCompiler(fastify_type_provider_zod_1.serializerCompiler);
 app.register(cors_1.default, {
-    origin: [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'https://judy-farma.vercel.app',
-        'https://judyfarma-support.vercel.app',
-    ],
+    origin: corsOrigins,
     credentials: true,
     methods: [
         "POST",
         "DELETE",
         "PUT",
         "PATCH",
-        "OPTION"
+        "OPTION",
+        "GET",
     ]
 });
 app.register(multipart_1.default, {
@@ -106,6 +115,24 @@ app.register(multipart_1.default, {
     },
     attachFieldsToBody: true,
 });
+app.addHook("preHandler", async (request, reply) => {
+    const routePath = request.routeOptions.url;
+    if ((0, authenticate_1.isPublicRoute)(request.method, routePath)) {
+        return;
+    }
+    if (request.method === "POST" && routePath === "/user/create") {
+        const usersCount = await prismaclient_1.prisma.users.count();
+        if (usersCount === 0) {
+            return;
+        }
+        await (0, authenticate_1.authenticateRequest)(request, reply);
+        if (!reply.sent && request.authenticatedUser?.role !== "ADMINISTRADOR") {
+            return reply.status(403).send({ error: "Apenas administradores podem criar usuarios" });
+        }
+        return;
+    }
+    await (0, authenticate_1.authenticateRequest)(request, reply);
+});
 // app.ready().then(()=> {
 //   startExpirationJob(app);
 // })
@@ -118,7 +145,7 @@ app.register(get_2.GetUser);
 app.register(getUserById_1.GetUserById);
 app.register(update_3.UpdateUser);
 app.register(delete_3.DeleteUser);
-// app.register(GetUserByFuncao);
+app.register(getUserByFuncao_1.GetUserByFuncao);
 //Auth
 app.register(login_1.Login);
 app.register(validation_1.ValidationToken);
@@ -140,6 +167,7 @@ app.register(get_5.GetAllProductStock);
 // Venda
 app.register(get_6.GetAllVenda);
 app.register(create_6.CreateVenda);
+app.register(get_6.GetProfitByMonth);
 //Client
 app.register(create_1.CreateClient);
 app.register(delete_1.DeleteClient);
@@ -195,4 +223,6 @@ app.register(update_8.UpdateFornecedor);
 app.register(delete_10.DeleteFornecedor);
 // Configurações
 app.register(Configuracoes_1.ConfiguracoesRoutes);
+// Email
+app.register(sendWelcome_1.SendWelcomeEmailRoute);
 app.listen({ port, host: "0.0.0.0" }).then(() => console.log(`Servidor rodando na porta : ${port}`));

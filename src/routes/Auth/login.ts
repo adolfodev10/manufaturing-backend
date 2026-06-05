@@ -7,7 +7,7 @@ import { generateToken } from "../../modules/services/jwt/generateToken";
 import { logger } from "../../modules/services/logs/logger";
 
 export const Login = async (app: FastifyInstance) => {
-  app.withTypeProvider<ZodTypeProvider>().post('/auth/login', {
+  app.withTypeProvider<ZodTypeProvider>().post("/auth/login", {
     schema: {
       body: z.object({
         email: z.string().email(),
@@ -25,11 +25,9 @@ export const Login = async (app: FastifyInstance) => {
         const user = await prisma.users.findFirst({
           where: {
             email,
-            user_status: "ACTIVO"
+            user_status: "ACTIVO",
           },
         });
-
-        console.log("🍀User: ", user);
 
         if (!user) {
           const duration = Date.now() - startTime;
@@ -37,32 +35,30 @@ export const Login = async (app: FastifyInstance) => {
           await logger.warning({
             action: "Login",
             user: email,
-            user_id: undefined, // 👈 ADICIONADO
-            details: "Tentativa de login - Email não encontrado ou inativo",
+            user_id: undefined,
+            details: "Tentativa de login - Email nao encontrado ou inativo",
             ip,
             resource: "auth",
             duration,
           });
-          return reply.status(401).send({ error: 'Credenciais inválidas' });
+          return reply.status(401).send({ error: "Credenciais invalidas" });
         }
 
         const isValid = await comparePassword(password, user.senha);
-        console.log("🍀Password: ", password);
-        console.log("🍀User Senha: ", user.senha);
-        
+
         if (!isValid) {
           const duration = Date.now() - startTime;
 
           await logger.warning({
             action: "Login",
             user: email,
-            user_id: user.id_user, // 👈 ADICIONADO (usuário existe, senha errada)
-            details: "Tentativa de login - Senha inválida",
+            user_id: user.id_user,
+            details: "Tentativa de login - Senha invalida",
             ip,
             resource: "auth",
             duration,
           });
-          return reply.status(401).send({ error: 'Credenciais inválidas' });
+          return reply.status(401).send({ error: "Credenciais invalidas" });
         }
 
         const duration = Date.now() - startTime;
@@ -70,7 +66,7 @@ export const Login = async (app: FastifyInstance) => {
         await logger.success({
           action: "Login",
           user: email,
-          user_id: user.id_user, // 👈 ADICIONADO
+          user_id: user.id_user,
           details: `Login realizado com sucesso. Role: ${user.role}`,
           ip,
           resource: "auth",
@@ -79,7 +75,7 @@ export const Login = async (app: FastifyInstance) => {
 
         const token = await generateToken({
           id_user: user.id_user,
-          email: user.email
+          email: user.email,
         });
 
         const userWithoutPassword = {
@@ -99,14 +95,14 @@ export const Login = async (app: FastifyInstance) => {
         await logger.error({
           action: "Login",
           user: email,
-          user_id: undefined, // 👈 ADICIONADO
+          user_id: undefined,
           details: `Erro interno durante login: ${error.message}`,
           ip,
           resource: "auth",
           duration,
         });
 
-        return reply.status(500).send({ error: 'Erro interno do servidor' });
+        return reply.status(500).send({ error: "Erro interno do servidor" });
       }
     });
 };

@@ -67,23 +67,25 @@ const DeleteProduct = async (app) => {
                 });
                 return reply.status(404).send({ message: "Produto não encontrado" });
             }
-            await prismaclient_1.prisma.produtosExpirados.create({
-                data: {
-                    id_product: product.id_product,
-                    name_product: product.name_product,
-                    category: product.category,
-                    price: product.price,
-                    quantity: product.quantity,
-                    date_validate: product.date_validate,
-                    date_expired: new Date(),
-                    motivo: "Eliminado pelo utilizador",
-                    deleted_by: user.email,
-                }
-            });
-            // 4. Apagar o produto
-            await prismaclient_1.prisma.products.delete({
-                where: { id_product },
-            });
+            const validationDate = new Date(product.date_validate);
+            await prismaclient_1.prisma.$transaction([
+                prismaclient_1.prisma.produtosExpirados.create({
+                    data: {
+                        id_product: product.id_product,
+                        name_product: product.name_product,
+                        category: product.category,
+                        price: product.price,
+                        quantity: product.quantity,
+                        date_validate: Number.isNaN(validationDate.getTime()) ? new Date() : validationDate,
+                        date_expired: new Date(),
+                        motivo: "Eliminado pelo utilizador",
+                        deleted_by: user.email,
+                    }
+                }),
+                prismaclient_1.prisma.products.delete({
+                    where: { id_product },
+                }),
+            ]);
             // 5. Registar log de sucesso
             const duration = Date.now() - startTime;
             await logger_1.logger.success({

@@ -75,24 +75,26 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                 return reply.status(404).send({ message: "Produto não encontrado" });
             }
 
-            await prisma.produtosExpirados.create({
-                data: {
-                    id_product: product.id_product,
-                    name_product: product.name_product,
-                    category: product.category,
-                    price: product.price,
-                    quantity: product.quantity,
-                    date_validate: product.date_validate,
-                    date_expired: new Date(),
-                    motivo: "Eliminado pelo utilizador",
-                    deleted_by: user.email,
-                }
-            });
+            const validationDate = new Date(product.date_validate);
 
-            // 4. Apagar o produto
-            await prisma.products.delete({
-                where: { id_product },
-            });
+            await prisma.$transaction([
+                prisma.produtosExpirados.create({
+                    data: {
+                        id_product: product.id_product,
+                        name_product: product.name_product,
+                        category: product.category,
+                        price: product.price,
+                        quantity: product.quantity,
+                        date_validate: Number.isNaN(validationDate.getTime()) ? new Date() : validationDate,
+                        date_expired: new Date(),
+                        motivo: "Eliminado pelo utilizador",
+                        deleted_by: user.email,
+                    }
+                }),
+                prisma.products.delete({
+                    where: { id_product },
+                }),
+            ]);
 
             // 5. Registar log de sucesso
             const duration = Date.now() - startTime;

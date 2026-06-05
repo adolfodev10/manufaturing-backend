@@ -4,22 +4,23 @@ import { z } from "zod";
 import { prisma } from "../../lib/prismaclient";
 
 export const GetUserByFuncao = async (app: FastifyInstance) => {
-    app.withTypeProvider<ZodTypeProvider>().get('/user/getUserByRole', {
+    app.withTypeProvider<ZodTypeProvider>().get("/user/getUserByRole", {
         schema: {
-            body: z.object({
-                role: z.enum(["ADMINISTRADOR", "OPERADOR"]),
-            })
-        }
+            querystring: z.object({
+                role: z.enum(["ADMINISTRADOR", "OPERADOR", "GERENTE"]),
+            }),
+        },
     },
         async (req) => {
-            const { role } = req.body;
+            const { role } = req.query;
 
             const roles = await prisma.users.findMany({
                 where: {
-                    role
-                }
+                    role,
+                },
             });
+
             return roles;
         }
-    )
-}
+    );
+};

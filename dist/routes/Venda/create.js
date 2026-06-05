@@ -4,30 +4,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateVenda = void 0;
-const prismaclient_1 = require("../../lib/prismaclient");
-const create_venda_1 = require("../../modules/validations/venda/create-venda");
-const logger_1 = require("../../modules/services/logs/logger");
 const crypto_1 = require("crypto");
 const zod_1 = __importDefault(require("zod"));
+const prismaclient_1 = require("../../lib/prismaclient");
+const logger_1 = require("../../modules/services/logs/logger");
+const create_venda_1 = require("../../modules/validations/venda/create-venda");
 const CreateVenda = async (app) => {
-    app.withTypeProvider().post('/venda/create', {
+    app.withTypeProvider().post("/venda/create", {
         schema: {
             body: create_venda_1.createVendaSchema,
             params: zod_1.default.object({}),
         },
     }, async (req, res) => {
         const startTime = Date.now();
-        const ip = req.ip || req.socket.remoteAddress || 'unknown';
-        const user = req.user?.name || 'sistema';
-        const { id_user } = req.body;
-        const userId = await prismaclient_1.prisma.users.findFirst({
-            where: {
-                id_user
-            }
-        });
-        console.log("🐛🐛🐛 User ID: ", userId);
+        const ip = req.ip || req.socket.remoteAddress || "unknown";
+        const user = req.authenticatedUser?.name || "sistema";
+        const userId = req.authenticatedUser?.id_user;
+        if (!userId) {
+            return res.status(401).send({ error: "Usuario autenticado nao encontrado" });
+        }
         try {
-            const { name_product, category, estado, date_venda, methodPayment, price, date_validate, quantity, created_at, updated_at } = req.body;
+            const { name_product, category, estado, date_venda, methodPayment, price, date_validate, quantity, created_at, updated_at, } = req.body;
             const venda = await prismaclient_1.prisma.venda.create({
                 data: {
                     name_product: name_product ?? "",
@@ -41,15 +38,14 @@ const CreateVenda = async (app) => {
                     created_at: new Date(created_at),
                     updated_at: new Date(updated_at),
                     id: (0, crypto_1.randomUUID)(),
-                    user_id: userId?.id_user
+                    user_id: userId,
                 },
             });
             const duration = Date.now() - startTime;
-            logger_1.logger.logSync({
-                level: "SUCCESS",
+            logger_1.logger.success({
                 action: "Criar Venda",
-                user: user,
-                details: `Venda criada: ${name_product} - Qtd: ${quantity} - Preço: ${price}`,
+                user,
+                details: `Venda criada: ${name_product} - Qtd: ${quantity} - Preco: ${price}`,
                 ip,
                 resource: "vendas",
                 resource_id: venda.id,
@@ -60,15 +56,14 @@ const CreateVenda = async (app) => {
         }
         catch (error) {
             const duration = Date.now() - startTime;
-            logger_1.logger.logSync({
-                level: "ERROR",
+            logger_1.logger.error({
                 action: "Criar Venda",
                 user,
-                details: `Erro ao criar venda: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+                details: `Erro ao criar venda: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
                 ip,
                 resource: "vendas",
                 duration,
-                old_value: JSON.stringify(req.body), // 👈 String, não Object
+                old_value: JSON.stringify(req.body),
             });
             console.error("Erro ao criar venda:", error);
             return res.status(500).send({

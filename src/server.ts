@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { fastify } from "./lib/fastify";
 
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
@@ -29,7 +30,7 @@ import { deleteProduct } from "./routes/Stock/delete";
 import { CreateStockProduct } from "./routes/Stock/create";
 import { EditStock } from "./routes/Stock/update";
 import { GetAllProductStock } from "./routes/Stock/get";
-import { GetAllVenda } from "./routes/Venda/get";
+import { GetAllVenda, GetProfitByMonth as GetVendaProfitByMonth } from "./routes/Venda/get";
 import { CreateVenda } from "./routes/Venda/create";
 import { DeleteDivida } from "./routes/Dividas/delete";
 import { GetDividasByClientId } from "./routes/Dividas/getById";
@@ -70,25 +71,29 @@ import { GetAllFaturas, GetFaturaById, GetFaturaByNumero } from "./routes/Fatura
 import { CreateFatura } from "./routes/Faturas/create";
 import { UpdateFatura } from "./routes/Faturas/update";
 import { SendWelcomeEmailRoute } from "./routes/Email/sendWelcome";
-
-// import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
+import { authenticateRequest, isPublicRoute } from "./modules/services/auth/authenticate";
+import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
+import { prisma } from "./lib/prismaclient";
 
 const app = fastify;
 const port = Number(process.env.PORT) || 3300;
+const corsOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://judy-farma.vercel.app',
+  'https://judyfarma-support.vercel.app',
+  'https://eko-manufaturing.vercel.app',
+  'https://manufaturing-backend.onrender.com',
+  process.env.CROSS_ORIGIN,
+].filter(Boolean) as string[];
+
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler);
 
 app.register(fastifyCors, {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'https://judy-farma.vercel.app',
-    'https://judyfarma-support.vercel.app',
-    'https://eko-manufaturing.vercel.app',
-    'https://manufaturing-backend.onrender.com'
-  ],
+  origin: corsOrigins,
   credentials: true,
   methods: [
     "POST",
@@ -113,6 +118,32 @@ app.register(multipart, {
   attachFieldsToBody: true,
 });
 
+app.addHook("preHandler", async (request, reply) => {
+  const routePath = request.routeOptions.url;
+
+  if (isPublicRoute(request.method, routePath)) {
+    return;
+  }
+
+  if (request.method === "POST" && routePath === "/user/create") {
+    const usersCount = await prisma.users.count();
+
+    if (usersCount === 0) {
+      return;
+    }
+
+    await authenticateRequest(request, reply);
+
+    if (!reply.sent && request.authenticatedUser?.role !== "ADMINISTRADOR") {
+      return reply.status(403).send({ error: "Apenas administradores podem criar usuarios" });
+    }
+
+    return;
+  }
+
+  await authenticateRequest(request, reply);
+});
+
 // app.ready().then(()=> {
 //   startExpirationJob(app);
 // })
@@ -129,7 +160,7 @@ app.register(GetUser);
 app.register(GetUserById);
 app.register(UpdateUser);
 app.register(DeleteUser);
-// app.register(GetUserByFuncao);
+app.register(GetUserByFuncao);
 
 //Auth
 app.register(Login);
@@ -156,6 +187,7 @@ app.register(GetAllProductStock);
 // Venda
 app.register(GetAllVenda);
 app.register(CreateVenda)
+app.register(GetVendaProfitByMonth);
 
 //Client
 app.register(CreateClient);

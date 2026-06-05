@@ -1,8 +1,16 @@
 import jwt from "jsonwebtoken";
 
-const JWT_TOKEN = process.env.JWT_SECRET || "ola-Mundo-5T";
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error("JWT_SECRET is required");
+  }
+
+  return secret;
+};
 
 export const generateToken = async (payload: object) => {
-  const token = jwt.sign(payload, JWT_TOKEN, { expiresIn: "5h" });
+  const token = jwt.sign(payload, getJwtSecret(), { expiresIn: "5h" });
   return token;
 };
