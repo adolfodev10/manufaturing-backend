@@ -1,16 +1,33 @@
+// backend/services/email.service.js
 import nodemailer from 'nodemailer';
+import dns from 'dns';
+
+// Forçar IPv4 para evitar ENETUNREACH
+dns.setDefaultResultOrder('ipv4first');
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
-  secure: true, // true para porta 465, false para 587 [citation:9]
+  secure: false, // ✅ IMPORTANTE: false para porta 587
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  family: 4, // ✅ Força IPv4
+  tls: {
+    rejectUnauthorized: false, // Apenas para testes
+  },
+  connectionTimeout: 30000,
+  socketTimeout: 30000,
 });
 
 export async function sendWelcomeEmail(to: string, name: string, password: string) {
+  // Validar configurações antes de tentar enviar
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.error('❌ SMTP não configurado no .env');
+    return false;
+  }
+
   const mailOptions = {
     from: process.env.SMTP_FROM,
     to,
@@ -36,11 +53,18 @@ export async function sendWelcomeEmail(to: string, name: string, password: strin
   };
 
   try {
+    console.log(`📧 Tentando enviar email para: ${to}`);
+    console.log(`🔧 Configurações: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}`);
+    
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
+    console.log('✅ Email enviado com sucesso:', info.messageId);
     return true;
-  } catch (error) {
-    console.error('Erro ao enviar email:', error);
+  } catch (error: any) {
+    console.error('❌ Erro detalhado ao enviar email:', {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+    });
     return false;
   }
 }

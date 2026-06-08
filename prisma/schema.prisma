@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -33,6 +33,7 @@ model Notification {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   user       Users    @relation(fields: [user_id], references: [id_user], onDelete: Cascade)
+  read       Boolean  @default(false)
 }
 
 model Logs {
