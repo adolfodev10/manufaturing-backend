@@ -69,7 +69,7 @@ import { ConfiguracoesRoutes } from "./routes/Configuracoes";
 import { GetAllFaturas, GetFaturaById, GetFaturaByNumero } from "./routes/Faturas/get";
 import { CreateFatura } from "./routes/Faturas/create";
 import { UpdateFatura } from "./routes/Faturas/update";
-import { SendWelcomeEmailRoute } from "./routes/Email/sendWelcome";
+// import { SendWelcomeEmailRoute } from "./routes/Email/sendWelcome";
 import { SmsRoutes } from "./routes/sms.routes";
 
 // import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
@@ -230,7 +230,7 @@ app.register(ConfiguracoesRoutes);
 
 
 // Email
-app.register(SendWelcomeEmailRoute);
+// app.register(SendWelcomeEmailRoute);
 app.register(SmsRoutes);
 
 
