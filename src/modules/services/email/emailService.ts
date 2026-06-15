@@ -19,7 +19,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean>
 
   try {
     const { data: emailData, error } = await resend.emails.send({
-      from: 'EKO <adolfomanueldev10@gmail.com>', // Email temporário do Resend
+      from: 'EKO <onboarding@resend.dev>', // Email temporário do Resend
       to: [to],
       subject: 'Bem-vindo ao EKO - Sistema de Manufaturação',
       html: `
