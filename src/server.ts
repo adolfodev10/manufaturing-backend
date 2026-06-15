@@ -70,6 +70,7 @@ import { GetAllFaturas, GetFaturaById, GetFaturaByNumero } from "./routes/Fatura
 import { CreateFatura } from "./routes/Faturas/create";
 import { UpdateFatura } from "./routes/Faturas/update";
 import { SendWelcomeEmailRoute } from "./routes/Email/sendWelcome";
+import { SmsRoutes } from "./routes/sms.routes";
 
 // import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
 
@@ -230,6 +231,7 @@ app.register(ConfiguracoesRoutes);
 
 // Email
 app.register(SendWelcomeEmailRoute);
+app.register(SmsRoutes);
 
 
 app.listen({ port, host: "0.0.0.0" }).then(() => console.log(`Servidor rodando na porta : ${port}`))
