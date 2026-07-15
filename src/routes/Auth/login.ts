@@ -32,17 +32,17 @@ export const Login = async (app: FastifyInstance) => {
         console.log("🍀User: ", user);
 
         if (!user) {
-          const duration = Date.now() - startTime;
+          // const duration = Date.now() - startTime;
 
-          await logger.warning({
-            action: "Login",
-            user: email,
-            user_id: undefined, // 👈 ADICIONADO
-            details: "Tentativa de login - Email não encontrado ou inativo",
-            ip,
-            resource: "auth",
-            duration,
-          });
+          // await logger.warning({
+          //   action: "Login",
+          //   user: email,
+          //   user_id: undefined, // 👈 ADICIONADO
+          //   details: "Tentativa de login - Email não encontrado ou inativo",
+          //   ip,
+          //   resource: "auth",
+          //   duration,
+          // });
           return reply.status(401).send({ error: 'Credenciais inválidas' });
         }
 
@@ -51,31 +51,31 @@ export const Login = async (app: FastifyInstance) => {
         console.log("🍀User Senha: ", user.senha);
         
         if (!isValid) {
-          const duration = Date.now() - startTime;
+          // const duration = Date.now() - startTime;
 
-          await logger.warning({
-            action: "Login",
-            user: email,
-            user_id: user.id_user, // 👈 ADICIONADO (usuário existe, senha errada)
-            details: "Tentativa de login - Senha inválida",
-            ip,
-            resource: "auth",
-            duration,
-          });
+          // await logger.warning({
+          //   action: "Login",
+          //   user: email,
+          //   user_id: user.id_user, // 👈 ADICIONADO (usuário existe, senha errada)
+          //   details: "Tentativa de login - Senha inválida",
+          //   ip,
+          //   resource: "auth",
+          //   duration,
+          // });
           return reply.status(401).send({ error: 'Credenciais inválidas' });
         }
 
-        const duration = Date.now() - startTime;
+        // const duration = Date.now() - startTime;
 
-        await logger.success({
-          action: "Login",
-          user: email,
-          user_id: user.id_user, // 👈 ADICIONADO
-          details: `Login realizado com sucesso. Role: ${user.role}`,
-          ip,
-          resource: "auth",
-          duration,
-        });
+        // await logger.success({
+        //   action: "Login",
+        //   user: email,
+        //   user_id: user.id_user, // 👈 ADICIONADO
+        //   details: `Login realizado com sucesso. Role: ${user.role}`,
+        //   ip,
+        //   resource: "auth",
+        //   duration,
+        // });
 
         const token = await generateToken({
           id_user: user.id_user,
@@ -96,15 +96,15 @@ export const Login = async (app: FastifyInstance) => {
       } catch (error: any) {
         const duration = Date.now() - startTime;
 
-        await logger.error({
-          action: "Login",
-          user: email,
-          user_id: undefined, // 👈 ADICIONADO
-          details: `Erro interno durante login: ${error.message}`,
-          ip,
-          resource: "auth",
-          duration,
-        });
+        // await logger.error({
+        //   action: "Login",
+        //   user: email,
+        //   user_id: undefined, // 👈 ADICIONADO
+        //   details: `Erro interno durante login: ${error.message}`,
+        //   ip,
+        //   resource: "auth",
+        //   duration,
+        // });
 
         return reply.status(500).send({ error: 'Erro interno do servidor' });
       }
