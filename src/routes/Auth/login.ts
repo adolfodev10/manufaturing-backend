@@ -95,6 +95,7 @@ export const Login = async (app: FastifyInstance) => {
 
       } catch (error: any) {
         const duration = Date.now() - startTime;
+        console.log("Detalhe do erro: ",error)
 
         // await logger.error({
         //   action: "Login",

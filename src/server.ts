@@ -71,6 +71,12 @@ import { CreateFatura } from "./routes/Faturas/create";
 import { UpdateFatura } from "./routes/Faturas/update";
 // import { SendWelcomeEmailRoute } from "./routes/Email/sendWelcome";
 import { SmsRoutes } from "./routes/sms.routes";
+import { CreateProducao } from "./routes/Producao/create";
+import { GetProducoes } from "./routes/Producao/get";
+import { CreateMateriaPrima } from "./routes/MateriasPrimas/create";
+import { GetMateriasPrimas } from "./routes/MateriasPrimas/get";
+import { UpdateMateriaPrima } from "./routes/MateriasPrimas/update";
+import { DeleteMateriaPrima } from "./routes/MateriasPrimas/delete";
 
 // import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
 
@@ -227,6 +233,16 @@ app.register(DeleteFornecedor);
 // Configurações
 
 app.register(ConfiguracoesRoutes);
+
+// Producao
+app.register(CreateProducao);
+app.register(GetProducoes);
+
+// Matérias-Primas
+app.register(CreateMateriaPrima);
+app.register(GetMateriasPrimas);
+app.register(UpdateMateriaPrima);
+app.register(DeleteMateriaPrima);
 
 
 // Email
