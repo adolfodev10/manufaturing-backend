@@ -77,6 +77,12 @@ import { CreateMateriaPrima } from "./routes/MateriasPrimas/create";
 import { GetMateriasPrimas } from "./routes/MateriasPrimas/get";
 import { UpdateMateriaPrima } from "./routes/MateriasPrimas/update";
 import { DeleteMateriaPrima } from "./routes/MateriasPrimas/delete";
+import { CreateFormula } from "./routes/Formulas/create";
+import { GetFormulas } from "./routes/Formulas/get";
+import { DeleteFormula } from "./routes/Formulas/delete";
+import { ForgotPassword } from "./routes/Auth/forgot-password";
+import { ResetPassword } from "./routes/Auth/reset-password";
+import { GetEstoqueAlerts } from "./routes/Notification/estoque-alerts";
 
 // import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
 
@@ -141,6 +147,8 @@ app.register(DeleteUser);
 //Auth
 app.register(Login);
 app.register(ValidationToken);
+app.register(ForgotPassword);
+app.register(ResetPassword);
 
 //Product
 app.register(AddProductInStock);
@@ -153,6 +161,7 @@ app.register(GetProfitByMonth)
 
 //Notification
 app.register(GetNotificationByUserId);
+app.register(GetEstoqueAlerts);
 
 //Stock
 app.register(deleteProduct);
@@ -243,6 +252,12 @@ app.register(CreateMateriaPrima);
 app.register(GetMateriasPrimas);
 app.register(UpdateMateriaPrima);
 app.register(DeleteMateriaPrima);
+
+// Fórmulas
+
+app.register(CreateFormula);
+app.register(GetFormulas);
+app.register(DeleteFormula);
 
 
 // Email
