@@ -4,11 +4,12 @@
   "description": "Backend do Projecto",
   "main": "src/server.ts",
   "scripts": {
-    "start": "npm start node dist/server.js",
+    "start": "node dist/server.js",
     "start:server": "ts-node src/server.ts",
     "dev": "ts-node-dev src/server.ts",
-    "build": "tsc",
-    "lint": "eslint 'src/**/*.{ts,tsx}' --fix"
+    "build": "npx prisma generate && tsc",
+    "lint": "eslint 'src/**/*.{ts,tsx}' --fix",
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
