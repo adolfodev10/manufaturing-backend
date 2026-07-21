@@ -8,7 +8,6 @@ const zod_1 = __importDefault(require("zod"));
 const prismaclient_1 = require("../../lib/prismaclient");
 const verifyPassword_1 = require("../../modules/services/bcrypt/verifyPassword");
 const generateToken_1 = require("../../modules/services/jwt/generateToken");
-const logger_1 = require("../../modules/services/logs/logger");
 const Login = async (app) => {
     app.withTypeProvider().post('/auth/login', {
         schema: {
@@ -31,44 +30,44 @@ const Login = async (app) => {
             });
             console.log("🍀User: ", user);
             if (!user) {
-                const duration = Date.now() - startTime;
-                await logger_1.logger.warning({
-                    action: "Login",
-                    user: email,
-                    user_id: undefined, // 👈 ADICIONADO
-                    details: "Tentativa de login - Email não encontrado ou inativo",
-                    ip,
-                    resource: "auth",
-                    duration,
-                });
+                // const duration = Date.now() - startTime;
+                // await logger.warning({
+                //   action: "Login",
+                //   user: email,
+                //   user_id: undefined, // 👈 ADICIONADO
+                //   details: "Tentativa de login - Email não encontrado ou inativo",
+                //   ip,
+                //   resource: "auth",
+                //   duration,
+                // });
                 return reply.status(401).send({ error: 'Credenciais inválidas' });
             }
             const isValid = await (0, verifyPassword_1.comparePassword)(password, user.senha);
             console.log("🍀Password: ", password);
             console.log("🍀User Senha: ", user.senha);
             if (!isValid) {
-                const duration = Date.now() - startTime;
-                await logger_1.logger.warning({
-                    action: "Login",
-                    user: email,
-                    user_id: user.id_user, // 👈 ADICIONADO (usuário existe, senha errada)
-                    details: "Tentativa de login - Senha inválida",
-                    ip,
-                    resource: "auth",
-                    duration,
-                });
+                // const duration = Date.now() - startTime;
+                // await logger.warning({
+                //   action: "Login",
+                //   user: email,
+                //   user_id: user.id_user, // 👈 ADICIONADO (usuário existe, senha errada)
+                //   details: "Tentativa de login - Senha inválida",
+                //   ip,
+                //   resource: "auth",
+                //   duration,
+                // });
                 return reply.status(401).send({ error: 'Credenciais inválidas' });
             }
-            const duration = Date.now() - startTime;
-            await logger_1.logger.success({
-                action: "Login",
-                user: email,
-                user_id: user.id_user, // 👈 ADICIONADO
-                details: `Login realizado com sucesso. Role: ${user.role}`,
-                ip,
-                resource: "auth",
-                duration,
-            });
+            // const duration = Date.now() - startTime;
+            // await logger.success({
+            //   action: "Login",
+            //   user: email,
+            //   user_id: user.id_user, // 👈 ADICIONADO
+            //   details: `Login realizado com sucesso. Role: ${user.role}`,
+            //   ip,
+            //   resource: "auth",
+            //   duration,
+            // });
             const token = await (0, generateToken_1.generateToken)({
                 id_user: user.id_user,
                 email: user.email
@@ -85,15 +84,16 @@ const Login = async (app) => {
         }
         catch (error) {
             const duration = Date.now() - startTime;
-            await logger_1.logger.error({
-                action: "Login",
-                user: email,
-                user_id: undefined, // 👈 ADICIONADO
-                details: `Erro interno durante login: ${error.message}`,
-                ip,
-                resource: "auth",
-                duration,
-            });
+            console.log("Detalhe do erro: ", error);
+            // await logger.error({
+            //   action: "Login",
+            //   user: email,
+            //   user_id: undefined, // 👈 ADICIONADO
+            //   details: `Erro interno durante login: ${error.message}`,
+            //   ip,
+            //   resource: "auth",
+            //   duration,
+            // });
             return reply.status(500).send({ error: 'Erro interno do servidor' });
         }
     });

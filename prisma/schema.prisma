@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 // datasource db {
 //   provider = "mysql"
 //   url      = env("DATABASE_URL")
@@ -25,6 +26,7 @@ model Users {
   perfis        UserPerfil[]
   notifications Notification[]
   venda         venda[]
+  Producoes     Producoes[]
 
   @@map("users")
 }
@@ -264,6 +266,8 @@ model products {
   estado        products_estado        @default(NAO_VENDIDO)
   category      String?
   dividas       dividas[]
+  Producoes     Producoes[]
+  Formulas      Formulas[]
 }
 
 model fornecedores {
@@ -327,6 +331,95 @@ model produtosExpirados {
   updated_at    DateTime @updatedAt
 
   @@map("produtosExpirados")
+}
+
+// ==================== PRODUÇÃO DE BEBIDAS ====================
+
+model Producoes {
+  id             String   @id @default(uuid())
+  data_producao  DateTime @default(now())
+  produto_id     String
+  quantidade     Float
+  unidade        String   @default("LITROS")
+  responsavel_id String
+  observacoes    String?  @db.Text
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  produto     products            @relation(fields: [produto_id], references: [id_product], onDelete: Cascade)
+  responsavel Users               @relation(fields: [responsavel_id], references: [id_user], onDelete: Cascade)
+  materiais   ProducaoMateriais[]
+
+  @@map("producoes")
+}
+
+model ProducaoMateriais {
+  id               String   @id @default(uuid())
+  producao_id      String
+  materia_prima_id String
+  quantidade       Float
+  unidade          String   @default("KG")
+  created_at       DateTime @default(now())
+
+  producao      Producoes      @relation(fields: [producao_id], references: [id], onDelete: Cascade)
+  materia_prima MateriasPrimas @relation(fields: [materia_prima_id], references: [id], onDelete: Cascade)
+
+  @@map("producao_materiais")
+}
+
+model MateriasPrimas {
+  id                String   @id @default(uuid())
+  nome              String   @unique
+  descricao         String?
+  codigo            String?
+  unidade           String   @default("KG")
+  categoria         String?
+  quantidade_atual  Float    @default(0)
+  quantidade_minima Float    @default(10)
+  preco_medio       Float?
+  fornecedor_id     String?
+  status            Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  producao_materiais ProducaoMateriais[]
+  formula_itens      FormulaItens[]
+
+  @@map("materias_primas")
+}
+
+model Formulas {
+  id             String   @id @default(uuid())
+  nome           String   @unique
+  produto_id     String
+  descricao      String?  @db.Text
+  rendimento     Float    @default(0)
+  tempo_producao Int?
+  instrucoes     String?  @db.Text
+  status         Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  produto products       @relation(fields: [produto_id], references: [id_product], onDelete: Cascade)
+  itens   FormulaItens[]
+
+  @@map("formulas")
+}
+
+model FormulaItens {
+  id               String   @id @default(uuid())
+  formula_id       String
+  materia_prima_id String
+  quantidade       Float
+  unidade          String   @default("KG")
+  percentual       Float?
+  etapa            String?
+  created_at       DateTime @default(now())
+
+  formula       Formulas       @relation(fields: [formula_id], references: [id], onDelete: Cascade)
+  materia_prima MateriasPrimas @relation(fields: [materia_prima_id], references: [id], onDelete: Cascade)
+
+  @@map("formula_itens")
 }
 
 enum Role {

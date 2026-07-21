@@ -71,6 +71,14 @@ const Configuracoes_1 = require("./routes/Configuracoes");
 const get_12 = require("./routes/Faturas/get");
 const create_12 = require("./routes/Faturas/create");
 const update_9 = require("./routes/Faturas/update");
+// import { SendWelcomeEmailRoute } from "./routes/Email/sendWelcome";
+const sms_routes_1 = require("./routes/sms.routes");
+const create_13 = require("./routes/Producao/create");
+const get_13 = require("./routes/Producao/get");
+const create_14 = require("./routes/MateriasPrimas/create");
+const get_14 = require("./routes/MateriasPrimas/get");
+const update_10 = require("./routes/MateriasPrimas/update");
+const delete_11 = require("./routes/MateriasPrimas/delete");
 // import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
 const app = fastify_1.fastify;
 const port = Number(process.env.PORT) || 3300;
@@ -84,6 +92,8 @@ app.register(cors_1.default, {
         'http://localhost:5174',
         'https://judy-farma.vercel.app',
         'https://judyfarma-support.vercel.app',
+        'https://eko-manufaturing.vercel.app',
+        'https://manufaturing-backend.onrender.com'
     ],
     credentials: true,
     methods: [
@@ -91,7 +101,8 @@ app.register(cors_1.default, {
         "DELETE",
         "PUT",
         "PATCH",
-        "OPTION"
+        "OPTION",
+        "GET",
     ]
 });
 app.register(multipart_1.default, {
@@ -195,4 +206,15 @@ app.register(update_8.UpdateFornecedor);
 app.register(delete_10.DeleteFornecedor);
 // Configurações
 app.register(Configuracoes_1.ConfiguracoesRoutes);
+// Producao
+app.register(create_13.CreateProducao);
+app.register(get_13.GetProducoes);
+// Matérias-Primas
+app.register(create_14.CreateMateriaPrima);
+app.register(get_14.GetMateriasPrimas);
+app.register(update_10.UpdateMateriaPrima);
+app.register(delete_11.DeleteMateriaPrima);
+// Email
+// app.register(SendWelcomeEmailRoute);
+app.register(sms_routes_1.SmsRoutes);
 app.listen({ port, host: "0.0.0.0" }).then(() => console.log(`Servidor rodando na porta : ${port}`));

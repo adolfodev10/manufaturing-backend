@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateLog = void 0;
 const zod_1 = __importDefault(require("zod"));
-const prismaclient_1 = require("../../lib/prismaclient");
+const log_service_1 = require("./log.service");
 const CreateLog = async (app) => {
     app.withTypeProvider().post("/logs/create", {
         schema: {
@@ -24,22 +24,7 @@ const CreateLog = async (app) => {
             }),
         },
     }, async (req, reply) => {
-        const { level, action, user, user_id, details, ip, resource, resource_id, old_value, new_value, duration } = req.body;
-        const log = await prismaclient_1.prisma.logs.create({
-            data: {
-                level,
-                action,
-                user,
-                user_id,
-                details,
-                ip,
-                resource,
-                resource_id,
-                old_value: old_value || undefined,
-                new_value: new_value || undefined,
-                duration,
-            },
-        });
+        const log = await (0, log_service_1.createLog)(req.body);
         return reply.status(201).send(log);
     });
 };

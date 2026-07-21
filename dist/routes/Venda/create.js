@@ -45,8 +45,7 @@ const CreateVenda = async (app) => {
                 },
             });
             const duration = Date.now() - startTime;
-            logger_1.logger.logSync({
-                level: "SUCCESS",
+            logger_1.logger.success({
                 action: "Criar Venda",
                 user: user,
                 details: `Venda criada: ${name_product} - Qtd: ${quantity} - Preço: ${price}`,
@@ -60,8 +59,7 @@ const CreateVenda = async (app) => {
         }
         catch (error) {
             const duration = Date.now() - startTime;
-            logger_1.logger.logSync({
-                level: "ERROR",
+            logger_1.logger.error({
                 action: "Criar Venda",
                 user,
                 details: `Erro ao criar venda: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,

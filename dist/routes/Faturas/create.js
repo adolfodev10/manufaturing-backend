@@ -120,8 +120,7 @@ const CreateFatura = async (app) => {
                 },
             });
             const duration = Date.now() - startTime;
-            logger_1.logger.logSync({
-                level: "SUCCESS",
+            logger_1.logger.success({
                 action: "Criar Fatura",
                 user,
                 user_id: userId,
@@ -139,8 +138,7 @@ const CreateFatura = async (app) => {
         }
         catch (error) {
             const duration = Date.now() - startTime;
-            logger_1.logger.logSync({
-                level: "ERROR",
+            logger_1.logger.error({
                 action: "Criar Fatura",
                 user,
                 user_id: userId,

@@ -46,8 +46,7 @@ const UpdateFatura = async (app) => {
                 },
             });
             const duration = Date.now() - startTime;
-            logger_1.logger.logSync({
-                level: "SUCCESS",
+            logger_1.logger.success({
                 action: "Atualizar Fatura",
                 user,
                 user_id: userId,
@@ -66,8 +65,7 @@ const UpdateFatura = async (app) => {
         }
         catch (error) {
             const duration = Date.now() - startTime;
-            logger_1.logger.logSync({
-                level: "ERROR",
+            logger_1.logger.error({
                 action: "Atualizar Fatura",
                 user,
                 user_id: userId,
