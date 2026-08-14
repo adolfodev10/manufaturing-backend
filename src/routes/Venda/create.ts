@@ -14,19 +14,45 @@ export const CreateVenda = async (app: FastifyInstance) => {
         },
     },
         async (req, res) => {
-
             const startTime = Date.now();
             const ip = req.ip || req.socket.remoteAddress || 'unknown';
-            const user = (req as any).user?.name || 'sistema';
-            const {id_user} = req.body as any;
 
-            const userId = await prisma.users.findFirst({
-                where: {
-                    id_user
-                }
-            })
+            // 👇 Pegar id_user do corpo da requisição
+            const { id_user, user_id } = req.body as any;
 
-            console.log("🐛🐛🐛 User ID: ", userId);
+            const userIdFromRequest = id_user || user_id;
+
+            console.log("🐛🐛🐛 id_user:", id_user);
+            console.log("🐛🐛🐛 user_id:", user_id);
+            console.log("🐛🐛🐛 userIdFromRequest:", userIdFromRequest);
+            // 👇 Buscar usuário pelo id_user
+            let userId: string | undefined;
+            let userName = 'sistema';
+
+            if (userIdFromRequest) {
+                const userRecord = await prisma.users.findFirst({
+                    where: {
+                        OR: [
+                            { id_user: userIdFromRequest }, // Caso o frontend envie id_user
+                            { email: userIdFromRequest }, // Caso o frontend envie email
+                        ]
+                    }
+                });
+
+                userId = userRecord?.id_user;
+                userName = userRecord?.name || 'sistema';
+
+                console.log("🐛🐛🐛 User encontrado: ", userRecord);
+            }
+
+            // 👇 Se não encontrou, tenta buscar pelo email
+            if (!userId) {
+                console.error("❌ Usuário não encontrado com ID:", id_user);
+                return res.status(400).send({
+                    message: "Usuário não encontrado",
+                    received_id: id_user
+                });
+            }
 
             try {
                 const {
@@ -55,7 +81,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
                         created_at: new Date(created_at),
                         updated_at: new Date(updated_at),
                         id: randomUUID(),
-                        user_id: userId?.id_user
+                        user_id: userId
                     },
                 });
 
@@ -63,7 +89,7 @@ export const CreateVenda = async (app: FastifyInstance) => {
 
                 logger.success({
                     action: "Criar Venda",
-                    user:  user,
+                    user: userName,
                     details: `Venda criada: ${name_product} - Qtd: ${quantity} - Preço: ${price}`,
                     ip,
                     resource: "vendas",
@@ -79,12 +105,12 @@ export const CreateVenda = async (app: FastifyInstance) => {
 
                 logger.error({
                     action: "Criar Venda",
-                    user,
+                    user: userName,
                     details: `Erro ao criar venda: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
                     ip,
                     resource: "vendas",
                     duration,
-                    old_value: JSON.stringify(req.body), // 👈 String, não Object
+                    old_value: JSON.stringify(req.body),
                 });
 
                 console.error("Erro ao criar venda:", error);

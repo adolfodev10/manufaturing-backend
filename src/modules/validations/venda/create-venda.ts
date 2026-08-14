@@ -13,5 +13,15 @@ export const createVendaSchema = z.object({
   date_venda: z.string().optional(),
   created_at: z.string(),
   updated_at: z.string(),
-  user_id: z.string().uuid().optional()
+  // 👇 Aceitar ambos os campos
+  id_user: z.string().optional(),
+  user_id: z.string().optional(),
+  // Campos adicionais
+  client_name: z.string().optional(),
+  client_nif: z.string().optional(),
+  payment_details: z.object({
+    cache: z.number(),
+    tpa: z.number(),
+    total: z.number(),
+  }).optional(),
 });
