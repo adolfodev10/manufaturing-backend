@@ -23,7 +23,6 @@ export const CreateClient = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id_user;
 
             try {
-                // Verificar se já existe cliente com mesmo NIF (se fornecido)
                 if (nif) {
                     const existingClient = await prisma.clients.findFirst({
                         where: { nif }
@@ -58,32 +57,31 @@ export const CreateClient = async (app: FastifyInstance) => {
                     },
                 });
 
-                console.log("🧶🧶🧶Cliente: ", client);
-
                 let usersToNotify: string[] = [];
 
                 if (userId) {
 
                     const admins = await prisma.users.findMany({
-                        where: { 
-                            role: {in :  ["ADMINISTRADOR", "GERENTE"] },
-                            user_status:"ACTIVO"
-                         },
+                        where: {
+                            role: { in: ["ADMINISTRADOR", "GERENTE"] },
+                            user_status: "ACTIVO"
+                        },
                         select: { id_user: true }
                     });
                     usersToNotify = admins.map(u => u.id_user);
                 }
 
-                if(usersToNotify.length === 0) {
+                if (usersToNotify.length === 0) {
                     const anyAdmin = await prisma.users.findFirst({
-                        where: { role: { in: ["ADMINISTRADOR", "GERENTE"] },
-                                user_status:"ACTIVO"
-                    },
+                        where: {
+                            role: { in: ["ADMINISTRADOR", "GERENTE"] },
+                            user_status: "ACTIVO"
+                        },
                         select: { id_user: true }
                     });
-                    if(anyAdmin) {
+                    if (anyAdmin) {
                         usersToNotify = [anyAdmin.id_user];
-                    }else {
+                    } else {
                         let systemUser = await prisma.users.findFirst({
                             where: { email: "sistema@exemplo.com" },
                         });
@@ -102,22 +100,20 @@ export const CreateClient = async (app: FastifyInstance) => {
                         }
                         usersToNotify = [systemUser.id_user];
                     }
-                    }
+                }
 
-              const notifications =  await Promise.all(
-                    usersToNotify.map(userId =>  
+                const notifications = await Promise.all(
+                    usersToNotify.map(userId =>
                         prisma.notification.create({
-                            data: { 
+                            data: {
                                 user_id: userId,
-                        message: `Novo cliente criado: ${client.name}`,
-                        created_at: new Date(),
-                        updated_at: new Date(),
-                    }
-                })
-            )
-        );
-
-                console.log("🍀🍀🍀 Notificações enviadas: ", notifications.length)
+                                message: `Novo cliente criado: ${client.name}`,
+                                created_at: new Date(),
+                                updated_at: new Date(),
+                            }
+                        })
+                    )
+                );
 
                 const duration = Date.now() - startTime;
 

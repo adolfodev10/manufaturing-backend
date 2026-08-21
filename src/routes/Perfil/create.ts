@@ -19,7 +19,6 @@ export const CreatePerfil = async (app: FastifyInstance) => {
             try {
                 const { nome, descricao, nivel, permissoes, is_default } = req.body;
 
-                // Verificar se já existe um perfil com o mesmo nome
                 const perfilExistente = await prisma.perfil.findUnique({
                     where: { nome },
                 });
@@ -28,7 +27,6 @@ export const CreatePerfil = async (app: FastifyInstance) => {
                     return reply.status(400).send({ error: "Já existe um perfil com este nome" });
                 }
 
-                // Se for perfil padrão, remover padrão de outros perfis
                 if (is_default) {
                     await prisma.perfil.updateMany({
                         where: { is_default: true },

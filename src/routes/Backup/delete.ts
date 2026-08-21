@@ -40,7 +40,6 @@ export const DeleteBackup = async (app: FastifyInstance) => {
                     return reply.status(404).send({ error: "Backup não encontrado" });
                 }
 
-                // Guardar informações antes de deletar para o log
                 const backupInfo = {
                     name: backup.name,
                     filename: backup.filename,
@@ -97,7 +96,6 @@ export const DeleteBackup = async (app: FastifyInstance) => {
     );
 };
 
-// Função auxiliar para formatar bytes
 function formatBytes(bytes: number, decimals = 2) {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;

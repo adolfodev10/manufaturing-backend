@@ -18,7 +18,6 @@ export const GetBackups = async (app: FastifyInstance) => {
                     }
                 });
 
-                // Converter BigInt para Number
                 const formattedBackups = backups.map((backup: any) => ({
                     ...backup,
                     size: Number(backup.size)

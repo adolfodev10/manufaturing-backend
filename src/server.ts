@@ -69,7 +69,6 @@ import { ConfiguracoesRoutes } from "./routes/Configuracoes";
 import { GetAllFaturas, GetFaturaById, GetFaturaByNumero } from "./routes/Faturas/get";
 import { CreateFatura } from "./routes/Faturas/create";
 import { UpdateFatura } from "./routes/Faturas/update";
-// import { SendWelcomeEmailRoute } from "./routes/Email/sendWelcome";
 import { SmsRoutes } from "./routes/sms.routes";
 import { CreateProducao } from "./routes/Producao/create";
 import { GetProducoes } from "./routes/Producao/get";
@@ -84,7 +83,6 @@ import { ForgotPassword } from "./routes/Auth/forgot-password";
 import { ResetPassword } from "./routes/Auth/reset-password";
 import { GetEstoqueAlerts } from "./routes/Notification/estoque-alerts";
 
-// import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
 
 const app = fastify;
 const port = Number(process.env.PORT) || 3300;
@@ -126,9 +124,6 @@ app.register(multipart, {
   attachFieldsToBody: true,
 });
 
-// app.ready().then(()=> {
-//   startExpirationJob(app);
-// })
 
 app.register(socketPlugin);
 
@@ -261,7 +256,6 @@ app.register(DeleteFormula);
 
 
 // Email
-// app.register(SendWelcomeEmailRoute);
 app.register(SmsRoutes);
 
 

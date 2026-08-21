@@ -20,7 +20,6 @@ export const GetDividasByClientId = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                // Verificar se o cliente existe primeiro
                 const client = await prisma.clients.findUnique({
                     where: { id_client: client_id },
                     select: { id_client: true, name: true, nif: true }
@@ -46,7 +45,7 @@ export const GetDividasByClientId = async (app: FastifyInstance) => {
 
                 const dividas = await prisma.dividas.findMany({
                     where: {
-                        client_id: client_id, // 👈 CORRIGIDO: usar client_id direto
+                        client_id: client_id, 
                     },
                     include: {
                         products: {
@@ -61,7 +60,6 @@ export const GetDividasByClientId = async (app: FastifyInstance) => {
                     },
                 });
 
-                // Estatísticas do cliente
                 const totalDividas = dividas.length;
                 const totalPendentes = dividas.filter(d => d.approval === 'NAO_PAGAS').length;
                 const totalPagas = dividas.filter(d => d.approval === 'PAGAS').length;

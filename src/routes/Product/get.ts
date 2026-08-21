@@ -46,10 +46,10 @@ export const GetAllProduct = async (app: FastifyInstance) => {
                 });
 
                 console.error("Erro ao listar produtos:", error);
-                
-                return reply.status(500).send({ 
+
+                return reply.status(500).send({
                     error: "Erro ao listar produtos",
-                    message: error.message 
+                    message: error.message
                 });
             }
         });
@@ -102,10 +102,10 @@ export const GetAllProductTheVenda = async (app: FastifyInstance) => {
                 });
 
                 console.error("Erro ao listar produtos disponíveis:", error);
-                
-                return reply.status(500).send({ 
+
+                return reply.status(500).send({
                     error: "Erro ao listar produtos",
-                    message: error.message 
+                    message: error.message
                 });
             }
         });

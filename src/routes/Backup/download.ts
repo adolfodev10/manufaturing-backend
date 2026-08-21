@@ -40,7 +40,6 @@ export const DownloadBackup = async (app: FastifyInstance) => {
                     return reply.status(404).send({ error: "Backup não encontrado" });
                 }
 
-                // Como não temos arquivo real, vamos gerar um conteúdo fictício
                 const content = `Backup: ${backup.name}\nCriado em: ${backup.created_at}\nTabelas: ${backup.tables?.toString().split(',').join(', ')}`;
                 
                 const duration = Date.now() - startTime;

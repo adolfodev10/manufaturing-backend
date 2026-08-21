@@ -1,8 +1,8 @@
 export default interface Client {
-    readonly id_client: string; // ID geralmente é imutável
-    name: string; // Mantendo um nome mais simples
+    readonly id_client: string;
+    name: string;
     telefone: string;
-    readonly created_at?: Date; // Opcional, pode ser preenchido pelo BD
-    readonly updated_at?: Date; // Opcional, pode ser preenchido pelo BD
+    readonly created_at?: Date;
+    readonly updated_at?: Date;
 }
 

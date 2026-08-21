@@ -49,7 +49,6 @@ export const DeleteDivida = async (app: FastifyInstance) => {
                     return res.status(404).send({ message: 'Dívida não encontrada' });
                 }
 
-                // Guardar informações antes de eliminar para o log
                 const dividaInfo = {
                     id: divida.id_divida,
                     cliente: (divida as any).client?.name || "N/A",

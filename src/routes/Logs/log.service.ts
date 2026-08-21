@@ -1,5 +1,3 @@
-// src/services/logService.ts
-
 import { prisma } from "../../lib/prismaclient";
 
 type LogLevel = "INFO" | "WARNING" | "ERROR" | "SUCCESS";

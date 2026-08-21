@@ -5,7 +5,7 @@ import { prisma } from "../../lib/prismaclient";
 import { hashPassword } from "../../modules/services/bcrypt/hashPassword";
 
 
-type Role =  "OPERADOR" | "GERENTE" |"ADMINISTRADOR"
+type Role = "OPERADOR" | "GERENTE" | "ADMINISTRADOR"
 
 
 export const CreateUser = async (app: FastifyInstance) => {
@@ -20,14 +20,14 @@ export const CreateUser = async (app: FastifyInstance) => {
             const userExists = await prisma.users.findFirst({
                 where: {
                     OR: [
-                        {email},
-                        {phone_number : phone_number || undefined}
+                        { email },
+                        { phone_number: phone_number || undefined }
                     ]
                 }
             })
 
             if (userExists) {
-                return res.status(400).send({ 
+                return res.status(400).send({
                     error: 'Email or Phone Number already exists',
                     field: userExists.email === email ? 'email' : 'phone_number'
                 });
@@ -36,41 +36,42 @@ export const CreateUser = async (app: FastifyInstance) => {
             const hashedPassword = await hashPassword(senha);
             const validRoles: Role[] = ["OPERADOR", "GERENTE", "ADMINISTRADOR"];
 
-            let userRole: Role =  "OPERADOR";    
-            if(role){
+            let userRole: Role = "OPERADOR";
+            if (role) {
                 const normalizedRole = role.toUpperCase();
-                if(validRoles.includes(normalizedRole as Role)) {
+                if (validRoles.includes(normalizedRole as Role)) {
                     userRole = normalizedRole as Role;
                 } else {
                     return res.status(400).send({
-                         error: "Role inválida. As opções válidas são: OPERADOR, GERENTE, ADMINISTRADOR" });
+                        error: "Role inválida. As opções válidas são: OPERADOR, GERENTE, ADMINISTRADOR"
+                    });
                 }
-            }     
+            }
 
-            try {  
+            try {
 
-                if(!born) {
+                if (!born) {
                     return res.status(400).send({ error: "Data de nascimento é obrigatória" });
                 }
-                const  bornDate = new Date(born);
-                    if (isNaN(bornDate.getTime())) {
-                        return res.status(400).send({ error: "Data de nascimento inválida" });
-                    }
+                const bornDate = new Date(born);
+                if (isNaN(bornDate.getTime())) {
+                    return res.status(400).send({ error: "Data de nascimento inválida" });
+                }
 
-            const user = await prisma.users.create({
-                data: {
-                    name,
-                    email,
-                    senha: hashedPassword,
-                    phone_number: phone_number || null,
-                    avatar: avatar || null,
-                    born: bornDate,
-                    role: userRole,
-                    user_status: "ACTIVO",
-                    created_at: new Date(),
-                    updated_at: new Date(),
-                },
-            });
+                const user = await prisma.users.create({
+                    data: {
+                        name,
+                        email,
+                        senha: hashedPassword,
+                        phone_number: phone_number || null,
+                        avatar: avatar || null,
+                        born: bornDate,
+                        role: userRole,
+                        user_status: "ACTIVO",
+                        created_at: new Date(),
+                        updated_at: new Date(),
+                    },
+                });
 
                 await prisma.notification.create({
                     data: {
@@ -81,21 +82,21 @@ export const CreateUser = async (app: FastifyInstance) => {
                     }
                 });
 
-                const {senha: _, ...userWithoutPassword} = user;
+                const { senha: _, ...userWithoutPassword } = user;
 
-            return res.status(201).send({
-                success: true,
-                messge: "Usuário criado com sucesso",
-                user: userWithoutPassword
-            });
-        }
-        catch (error) {
-            console.error("Error creating user:", error);
-            return res.status(500).send({
-                 error: "Erro interno ao criar usuário",
-                details: process.env.NODE_ENV === 'development' ? error : undefined
+                return res.status(201).send({
+                    success: true,
+                    messge: "Usuário criado com sucesso",
+                    user: userWithoutPassword
                 });
+            }
+            catch (error) {
+                console.error("Error creating user:", error);
+                return res.status(500).send({
+                    error: "Erro interno ao criar usuário",
+                    details: process.env.NODE_ENV === 'development' ? error : undefined
+                });
+            }
         }
-    }
     );
 } 

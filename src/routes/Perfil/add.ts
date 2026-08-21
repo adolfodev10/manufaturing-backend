@@ -21,7 +21,6 @@ export const AtribuirPerfilUsuario = async (app: FastifyInstance) => {
                 const results: Array<{ id: string; user_id: string; created_at: Date; perfil_id: string }> = [];
 
                 for (const atribuicao of atribuicoes) {
-                    // Verificar se usuário existe
                     const usuario = await prisma.users.findUnique({
                         where: { id_user: atribuicao.usuario_id }
                     });
@@ -32,7 +31,6 @@ export const AtribuirPerfilUsuario = async (app: FastifyInstance) => {
                         });
                     }
 
-                    // Verificar se perfil existe
                     const perfil = await prisma.perfil.findUnique({
                         where: { id: atribuicao.perfil_id }
                     });
@@ -43,7 +41,6 @@ export const AtribuirPerfilUsuario = async (app: FastifyInstance) => {
                         });
                     }
 
-                    // Criar ou atualizar atribuição
                     const userPerfil = await prisma.userPerfil.upsert({
                         where: {
                             user_id_perfil_id: {
@@ -61,7 +58,6 @@ export const AtribuirPerfilUsuario = async (app: FastifyInstance) => {
                     results.push(userPerfil);
                 }
 
-                // Atualizar contadores de usuários nos perfis
                 for (const atribuicao of atribuicoes) {
                     const count = await prisma.userPerfil.count({
                         where: { perfil_id: atribuicao.perfil_id }

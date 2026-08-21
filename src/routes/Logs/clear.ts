@@ -7,7 +7,7 @@ export const ClearLogs = async (app: FastifyInstance) => {
     app.withTypeProvider<ZodTypeProvider>().delete("/logs/clear", {
         schema: {
             querystring: z.object({
-                olderThan: z.string().optional(), // dias
+                olderThan: z.string().optional(), 
                 level: z.enum(["INFO", "WARNING", "ERROR", "SUCCESS"]).optional(),
                 resource: z.string().optional(),
             }),

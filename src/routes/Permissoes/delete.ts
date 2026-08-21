@@ -15,7 +15,6 @@ export const DeletarPermissao = async (app: FastifyInstance) => {
             try {
                 const { id } = req.params;
 
-                // Verificar se a permissão existe
                 const permissaoExistente = await prisma.permissao.findUnique({
                     where: { id },
                 });
@@ -24,7 +23,6 @@ export const DeletarPermissao = async (app: FastifyInstance) => {
                     return reply.status(404).send({ error: "Permissão não encontrada" });
                 }
 
-                // Verificar se a permissão está sendo usada por algum perfil/grupo
                 const perfisComPermissao = await prisma.permissao.count({
                     where: {
                         id,

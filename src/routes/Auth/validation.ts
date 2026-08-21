@@ -96,9 +96,9 @@ export const ValidationToken = async (app: FastifyInstance) => {
                 role: findUser.role
             };
 
-            return reply.status(200).send({ 
-                message: 'Token válido', 
-                user: userWithoutPassword 
+            return reply.status(200).send({
+                message: 'Token válido',
+                user: userWithoutPassword
             });
 
         } catch (error: any) {

@@ -18,7 +18,6 @@ export const DeleteProduct = async (app: FastifyInstance) => {
         const ip = req.ip || req.socket.remoteAddress || "unknown";
 
         try {
-            // 1. Verificar token e obter usuário
             const authHeader = req.headers.authorization;
             if (!authHeader) {
                 return reply.status(401).send({ error: "Token não fornecido" });
@@ -38,7 +37,6 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                 return reply.status(401).send({ error: "Usuário não encontrado" });
             }
 
-            // 2. Verificar permissão (ADMINISTRADOR ou GERENTE)
             const rolesPermitidas = ["ADMINISTRADOR", "GERENTE"];
             if (!rolesPermitidas.includes(user.role)) {
                 const duration = Date.now() - startTime;
@@ -56,7 +54,6 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                 });
             }
 
-            // 3. Buscar o produto
             const product = await prisma.products.findUnique({
                 where: { id_product },
             });
@@ -89,12 +86,10 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                 }
             });
 
-            // 4. Apagar o produto
             await prisma.products.delete({
                 where: { id_product },
             });
 
-            // 5. Registar log de sucesso
             const duration = Date.now() - startTime;
             await logger.success({
                 action: "Eliminar Produtos",

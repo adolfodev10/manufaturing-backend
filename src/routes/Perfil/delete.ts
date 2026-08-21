@@ -15,7 +15,6 @@ export const DeletarPerfil = async (app: FastifyInstance) => {
             try {
                 const { id } = req.params;
 
-                // Verificar se o perfil existe
                 const perfilExistente = await prisma.perfil.findUnique({
                     where: { id },
                     include: {
@@ -27,12 +26,10 @@ export const DeletarPerfil = async (app: FastifyInstance) => {
                     return reply.status(404).send({ error: "Perfil não encontrado" });
                 }
 
-                // Verificar se é um perfil do sistema (não pode ser deletado)
                 if (perfilExistente.is_system) {
                     return reply.status(403).send({ error: "Perfil do sistema não pode ser deletado" });
                 }
 
-                // Verificar se existem usuários associados
                 if (perfilExistente.usuarios_count > 0 || perfilExistente.users.length > 0) {
                     return reply.status(400).send({ 
                         error: "Não é possível excluir este perfil pois existem usuários associados",

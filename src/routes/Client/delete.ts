@@ -26,7 +26,7 @@ export const DeleteClient = async (app: FastifyInstance) => {
 
                 if (!client) {
                     const duration = Date.now() - startTime;
-                    
+
                     await logger.warning({
                         action: "Eliminar Cliente",
                         user,
@@ -41,7 +41,6 @@ export const DeleteClient = async (app: FastifyInstance) => {
                     return res.status(404).send({ message: 'Cliente não encontrado' });
                 }
 
-                // Guardar informações antes de deletar para o log
                 const clientInfo = {
                     nome: client.name,
                     nif: client.nif,
@@ -49,7 +48,6 @@ export const DeleteClient = async (app: FastifyInstance) => {
                     criado_em: client.created_at,
                 };
 
-                // Verificar se o cliente tem faturas associadas
                 const faturasCount = await prisma.dividas.count({
                     where: { client_id: id }
                 });
@@ -67,22 +65,22 @@ export const DeleteClient = async (app: FastifyInstance) => {
                     user,
                     user_id: userId,
                     details: `Cliente eliminado com sucesso. ` +
-                             `Nome: "${clientInfo.nome}" | ` +
-                             `NIF: ${clientInfo.nif || 'Não informado'} | ` +
-                             `Telefone: ${clientInfo.telefone || 'Não informado'} | ` +
-                             `Criado em: ${new Date(clientInfo.criado_em).toISOString()} | ` +
-                             `Faturas associadas: ${faturasCount}`,
+                        `Nome: "${clientInfo.nome}" | ` +
+                        `NIF: ${clientInfo.nif || 'Não informado'} | ` +
+                        `Telefone: ${clientInfo.telefone || 'Não informado'} | ` +
+                        `Criado em: ${new Date(clientInfo.criado_em).toISOString()} | ` +
+                        `Faturas associadas: ${faturasCount}`,
                     ip,
                     resource: "clients",
                     resource_id: id,
                     duration,
                 });
 
-                return res.status(200).send({ 
+                return res.status(200).send({
                     message: "Cliente eliminado com sucesso",
                     faturas_afetadas: faturasCount
                 });
-                
+
             } catch (error: any) {
                 const duration = Date.now() - startTime;
 
@@ -98,9 +96,9 @@ export const DeleteClient = async (app: FastifyInstance) => {
                 });
 
                 console.error("Erro ao eliminar cliente:", error);
-                return res.status(500).send({ 
+                return res.status(500).send({
                     error: "Erro interno do servidor",
-                    message: error.message 
+                    message: error.message
                 });
             }
         }

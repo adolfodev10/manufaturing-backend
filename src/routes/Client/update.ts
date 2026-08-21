@@ -30,7 +30,7 @@ export const UpdateClient = async (app: FastifyInstance) => {
             try {
                 if (!id_client) {
                     const duration = Date.now() - startTime;
-                    
+
                     await logger.warning({
                         action: "Atualizar Cliente",
                         user,
@@ -50,7 +50,7 @@ export const UpdateClient = async (app: FastifyInstance) => {
 
                 if (!existingClient) {
                     const duration = Date.now() - startTime;
-                    
+
                     await logger.warning({
                         action: "Atualizar Cliente",
                         user,
@@ -65,22 +65,20 @@ export const UpdateClient = async (app: FastifyInstance) => {
                     return res.status(404).send({ message: "Cliente não encontrado." });
                 }
 
-                // Montar lista de alterações para o log
                 const alteracoes: string[] = [];
-                
+
                 if (existingClient.name !== name) {
                     alteracoes.push(`Nome: "${existingClient.name}" → "${name}"`);
                 }
-                
+
                 if (nif && existingClient.nif !== nif) {
                     alteracoes.push(`NIF: "${existingClient.nif}" → "${nif}"`);
                 }
-                
+
                 if (telefone && existingClient.telefone !== telefone) {
                     alteracoes.push(`Telefone: "${existingClient.telefone}" → "${telefone}"`);
                 }
 
-                // Preparar os dados a atualizar
                 const updateData: { name: string; telefone?: string; nif?: string } = {
                     name,
                 };
@@ -100,16 +98,15 @@ export const UpdateClient = async (app: FastifyInstance) => {
 
                 const duration = Date.now() - startTime;
 
-                // LOG DE SUCESSO COM ALTERAÇÕES DETALHADAS
                 await logger.success({
                     action: "Atualizar Cliente",
                     user,
                     user_id: userId,
                     details: `Cliente atualizado com sucesso. ` +
-                             `ID: ${id_client} | ` +
-                             (alteracoes.length > 0 
-                                ? `Alterações: ${alteracoes.join('; ')}` 
-                                : 'Nenhuma alteração detectada'),
+                        `ID: ${id_client} | ` +
+                        (alteracoes.length > 0
+                            ? `Alterações: ${alteracoes.join('; ')}`
+                            : 'Nenhuma alteração detectada'),
                     ip,
                     resource: "clients",
                     resource_id: id_client,
@@ -117,7 +114,7 @@ export const UpdateClient = async (app: FastifyInstance) => {
                 });
 
                 return res.status(200).send(client);
-                
+
             } catch (error: any) {
                 const duration = Date.now() - startTime;
 

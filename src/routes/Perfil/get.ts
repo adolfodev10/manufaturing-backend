@@ -22,7 +22,6 @@ export const ListarPerfis = async (app: FastifyInstance) => {
 
                 const skip = (page - 1) * limit;
 
-                // Construir filtros
                 const where: any = {};
 
                 if (nivel) {
@@ -44,7 +43,6 @@ export const ListarPerfis = async (app: FastifyInstance) => {
                     ];
                 }
 
-                // Buscar perfis com paginação
                 const [perfis, total] = await Promise.all([
                     prisma.perfil.findMany({
                         where,
@@ -72,7 +70,6 @@ export const ListarPerfis = async (app: FastifyInstance) => {
                     prisma.perfil.count({ where }),
                 ]);
 
-                // Formatar resposta
                 const perfisFormatados = perfis.map(perfil => ({
                     ...perfil,
                     permissoes: JSON.parse(perfil.permissoes),

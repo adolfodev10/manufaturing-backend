@@ -71,7 +71,6 @@ const Configuracoes_1 = require("./routes/Configuracoes");
 const get_12 = require("./routes/Faturas/get");
 const create_12 = require("./routes/Faturas/create");
 const update_9 = require("./routes/Faturas/update");
-// import { SendWelcomeEmailRoute } from "./routes/Email/sendWelcome";
 const sms_routes_1 = require("./routes/sms.routes");
 const create_13 = require("./routes/Producao/create");
 const get_13 = require("./routes/Producao/get");
@@ -79,7 +78,6 @@ const create_14 = require("./routes/MateriasPrimas/create");
 const get_14 = require("./routes/MateriasPrimas/get");
 const update_10 = require("./routes/MateriasPrimas/update");
 const delete_11 = require("./routes/MateriasPrimas/delete");
-// import { GetUserByFuncao } from "./routes/User/getUserByFuncao";
 const app = fastify_1.fastify;
 const port = Number(process.env.PORT) || 3300;
 app.setValidatorCompiler(fastify_type_provider_zod_1.validatorCompiler);
@@ -117,23 +115,16 @@ app.register(multipart_1.default, {
     },
     attachFieldsToBody: true,
 });
-// app.ready().then(()=> {
-//   startExpirationJob(app);
-// })
+startExpirationJob(app);
 app.register(socket_1.default);
-//Root Route
 app.register(root_route_1.RootRoute);
-//User
 app.register(create_2.CreateUser);
 app.register(get_2.GetUser);
 app.register(getUserById_1.GetUserById);
 app.register(update_3.UpdateUser);
 app.register(delete_3.DeleteUser);
-// app.register(GetUserByFuncao);
-//Auth
 app.register(login_1.Login);
 app.register(validation_1.ValidationToken);
-//Product
 app.register(add_1.AddProductInStock);
 app.register(get_3.GetAllProduct);
 app.register(get_3.GetAllProductTheVenda);
@@ -141,35 +132,28 @@ app.register(create_3.CreateProduct);
 app.register(delete_2.DeleteProduct);
 app.register(update_2.EditProduct);
 app.register(get_3.GetProfitByMonth);
-//Notification
 app.register(getById_4.GetNotificationByUserId);
-//Stock
 app.register(delete_4.deleteProduct);
 app.register(create_5.CreateStockProduct);
 app.register(update_4.EditStock);
 app.register(get_5.GetAllProductStock);
-// Venda
 app.register(get_6.GetAllVenda);
 app.register(create_6.CreateVenda);
-//Client
 app.register(create_1.CreateClient);
 app.register(delete_1.DeleteClient);
 app.register(update_1.UpdateClient);
 app.register(get_1.GetClient);
-// Divida
 app.register(create_4.CreateDivida);
 app.register(get_4.GetAllDivida);
 app.register(delete_5.DeleteDivida);
 app.register(getById_1.GetDividasByClientId);
 app.register(update_5.UpdateDivida);
-//Logs 
 app.register(create_7.CreateLog);
 app.register(get_7.GetLogs);
 app.register(getById_2.GetLogById);
 app.register(clear_1.ClearLogs);
 app.register(delete_6.DeleteLog);
 app.register(stats_1.GetLogsStats);
-//Backup
 app.register(get_8.GetBackups);
 app.register(config_1.GetBackupConfig);
 app.register(stats_2.GetBackupStats);
@@ -177,19 +161,16 @@ app.register(download_1.DownloadBackup);
 app.register(config_1.SaveBackupConfig);
 app.register(create_8.CreateBackup);
 app.register(delete_7.DeleteBackup);
-//Permissoes
 app.register(create_9.CreatePermissao);
 app.register(get_9.ListarPermissoes);
 app.register(getById_3.BuscarPermissaoPorId);
 app.register(update_6.AtualizarPermissao);
 app.register(delete_8.DeletarPermissao);
-// Faturas
 app.register(get_12.GetAllFaturas);
 app.register(get_12.GetFaturaById);
 app.register(get_12.GetFaturaByNumero);
 app.register(create_12.CreateFatura);
 app.register(update_9.UpdateFatura);
-//Perfil
 app.register(create_10.CreatePerfil);
 app.register(get_10.ListarPerfis);
 app.register(getByd_1.BuscarPerfilPorId);
@@ -198,23 +179,17 @@ app.register(delete_9.DeletarPerfil);
 app.register(add_2.AtribuirPerfilUsuario);
 app.register(remove_1.RemoverPerfilUsuario);
 app.register(userByPerfil_1.ListarUsuariosPorPerfil);
-//Fornecedores 
 app.register(create_11.CreateFornecedor);
 app.register(get_11.GetAllFornecedores);
 app.register(getById_5.GetFornecedorById);
 app.register(update_8.UpdateFornecedor);
 app.register(delete_10.DeleteFornecedor);
-// Configurações
 app.register(Configuracoes_1.ConfiguracoesRoutes);
-// Producao
 app.register(create_13.CreateProducao);
 app.register(get_13.GetProducoes);
-// Matérias-Primas
 app.register(create_14.CreateMateriaPrima);
 app.register(get_14.GetMateriasPrimas);
 app.register(update_10.UpdateMateriaPrima);
 app.register(delete_11.DeleteMateriaPrima);
-// Email
-// app.register(SendWelcomeEmailRoute);
 app.register(sms_routes_1.SmsRoutes);
 app.listen({ port, host: "0.0.0.0" }).then(() => console.log(`Servidor rodando na porta : ${port}`));

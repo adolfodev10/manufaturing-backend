@@ -1,10 +1,8 @@
-// backend/routes/sms.routes.ts
 import { FastifyInstance } from 'fastify';
 import { enviarSMSBoasVindas, gerarMensagemUsuarioCriado } from '../modules/services/sms.service';
 
 export async function SmsRoutes(app: FastifyInstance) {
   
-  // Endpoint para enviar SMS de boas-vindas
   app.post('/sms/welcome', async (req, reply) => {
     const { telefone, name, email, password } = req.body as { 
       telefone: string; 
@@ -29,7 +27,6 @@ export async function SmsRoutes(app: FastifyInstance) {
     }
   });
 
-  // Endpoint para enviar SMS de usuário criado (para o admin)
   app.post('/sms/usuario-criado', async (req, reply) => {
     const { telefone, name, email, password } = req.body as any;
 

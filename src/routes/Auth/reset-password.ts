@@ -25,7 +25,6 @@ export const ResetPassword = async (app: FastifyInstance) => {
         return reply.status(400).send({ error: "Token inválido ou expirado" });
       }
 
-      // Verificar token
       const resetData = await prisma.system_config.findUnique({
         where: { key: `reset_${user.id_user}` },
       });
@@ -44,7 +43,6 @@ export const ResetPassword = async (app: FastifyInstance) => {
         return reply.status(400).send({ error: "Token expirado. Solicite novamente." });
       }
 
-      // Atualizar senha
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       
       await prisma.users.update({
@@ -52,7 +50,6 @@ export const ResetPassword = async (app: FastifyInstance) => {
         data: { senha: hashedPassword },
       });
 
-      // Remover token
       await prisma.system_config.delete({
         where: { key: `reset_${user.id_user}` },
       });

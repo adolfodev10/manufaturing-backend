@@ -19,7 +19,6 @@ export const CreateProduct = async (app: FastifyInstance) => {
             const userId = (request as any).user?.id;
 
             try {
-                // Verificar se já existe produto com o mesmo nome
                 const productExists = await prisma.products.findFirst({
                     where: {
                         name_product: name,
@@ -41,9 +40,9 @@ export const CreateProduct = async (app: FastifyInstance) => {
                         duration,
                     });
 
-                    return reply.status(409).send({ 
+                    return reply.status(409).send({
                         message: "Já existe um produto com este nome",
-                        productExists 
+                        productExists
                     });
                 }
 
@@ -68,21 +67,21 @@ export const CreateProduct = async (app: FastifyInstance) => {
                     user,
                     user_id: userId,
                     details: `Produto criado com sucesso. ` +
-                             `ID: ${product.id_product} | ` +
-                             `Nome: "${product.name_product}" | ` +
-                             `Categoria: ${product.category} | ` +
-                             `Preço: ${Number(product.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} | ` +
-                             `Quantidade: ${product.quantity} | ` +
-                             `Validade: ${product.date_validate || 'Não definida'}`,
+                        `ID: ${product.id_product} | ` +
+                        `Nome: "${product.name_product}" | ` +
+                        `Categoria: ${product.category} | ` +
+                        `Preço: ${Number(product.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} | ` +
+                        `Quantidade: ${product.quantity} | ` +
+                        `Validade: ${product.date_validate || 'Não definida'}`,
                     ip,
                     resource: "products",
                     resource_id: product.id_product,
                     duration,
                 });
 
-                return reply.status(201).send({ 
+                return reply.status(201).send({
                     message: "Produto criado com sucesso",
-                    product 
+                    product
                 });
 
             } catch (error: any) {
@@ -99,10 +98,10 @@ export const CreateProduct = async (app: FastifyInstance) => {
                 });
 
                 console.error("Erro ao criar produto:", error);
-                
-                return reply.status(500).send({ 
+
+                return reply.status(500).send({
                     error: "Erro ao criar produto",
-                    message: error.message 
+                    message: error.message
                 });
             }
         });

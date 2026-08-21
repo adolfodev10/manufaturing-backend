@@ -27,7 +27,6 @@ export const UpdateDivida = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                // Verificar se a dívida existe
                 const existingDivida = await prisma.dividas.findUnique({
                     where: { id_divida: id },
                     include: {
@@ -56,7 +55,6 @@ export const UpdateDivida = async (app: FastifyInstance) => {
                     });
                 }
 
-                // Verificar se o cliente existe (se foi alterado)
                 if (client_id !== existingDivida.client_id) {
                     const clientExists = await prisma.clients.findUnique({
                         where: { id_client: client_id },
@@ -83,7 +81,6 @@ export const UpdateDivida = async (app: FastifyInstance) => {
                     }
                 }
 
-                // Montar lista de alterações para o log
                 const alteracoes: string[] = [];
                 const clienteNome = (existingDivida as any).clients?.name || "N/A";
                 const clienteNif = (existingDivida as any).clients?.nif || "N/A";
@@ -121,7 +118,6 @@ export const UpdateDivida = async (app: FastifyInstance) => {
 
                 const duration = Date.now() - startTime;
 
-                // LOG ESPECIAL quando a dívida é paga
                 if (existingDivida.approval === 'NAO_PAGAS' && approval === 'PAGAS') {
                     await logger.success({
                         action: "Pagamento de Dívida",

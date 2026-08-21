@@ -18,7 +18,6 @@ export const GetLogsStats = async (app: FastifyInstance) => {
             const date = new Date();
             date.setDate(date.getDate() - daysNum);
 
-            // Estatísticas gerais
             const [
                 total,
                 infoCount,
@@ -43,7 +42,6 @@ export const GetLogsStats = async (app: FastifyInstance) => {
                 }),
             ]);
 
-            // Logs por dia (últimos 7 dias)
             const logsByDay: { date: string; count: number }[] = [];
             for (let i = 0; i < 7; i++) {
                 const day = new Date();

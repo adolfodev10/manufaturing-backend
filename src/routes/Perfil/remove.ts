@@ -16,7 +16,6 @@ export const RemoverPerfilUsuario = async (app: FastifyInstance) => {
             try {
                 const { usuario_id, perfil_id } = req.body;
 
-                // Verificar se a atribuição existe
                 const userPerfil = await prisma.userPerfil.findUnique({
                     where: {
                         user_id_perfil_id: {
@@ -32,7 +31,6 @@ export const RemoverPerfilUsuario = async (app: FastifyInstance) => {
                     });
                 }
 
-                // Verificar se o perfil é do sistema (não pode remover de último admin)
                 const perfil = await prisma.perfil.findUnique({
                     where: { id: perfil_id }
                 });
@@ -58,7 +56,6 @@ export const RemoverPerfilUsuario = async (app: FastifyInstance) => {
                     }
                 });
 
-                // Atualizar contador de usuários no perfil
                 const count = await prisma.userPerfil.count({
                     where: { perfil_id }
                 });

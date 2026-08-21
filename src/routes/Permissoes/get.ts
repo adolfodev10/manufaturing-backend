@@ -21,7 +21,6 @@ export const ListarPermissoes = async (app: FastifyInstance) => {
 
                 const skip = (page - 1) * limit;
 
-                // Construir filtros
                 const where: any = {};
 
                 if (modulo) {
@@ -40,7 +39,6 @@ export const ListarPermissoes = async (app: FastifyInstance) => {
                     ];
                 }
 
-                // Buscar permissões com paginação
                 const [permissoes, total] = await Promise.all([
                     prisma.permissao.findMany({
                         where,

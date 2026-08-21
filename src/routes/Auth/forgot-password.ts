@@ -21,18 +21,14 @@ export const ForgotPassword = async (app: FastifyInstance) => {
       });
 
       if (!user) {
-        // Não revelar se o email existe ou não (segurança)
         return reply.send({ 
           message: "Se o email existir, enviaremos um link de recuperação." 
         });
       }
 
-      // Gerar token de recuperação
       const resetToken = crypto.randomBytes(32).toString("hex");
-      const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hora
+      const resetTokenExpiry = new Date(Date.now() + 3600000); 
 
-      // Salvar token no banco (adicione estes campos no schema se quiser)
-      // Por enquanto, vamos usar o system_config
       await prisma.system_config.upsert({
         where: { key: `reset_${user.id_user}` },
         create: {
@@ -50,7 +46,6 @@ export const ForgotPassword = async (app: FastifyInstance) => {
         },
       });
 
-      // Configurar transporte de email
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: Number(process.env.SMTP_PORT) || 587,

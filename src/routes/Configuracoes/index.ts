@@ -3,7 +3,6 @@ import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { prisma } from "../../lib/prismaclient";
 
-// Valores por defeito – podem ser movidos para um ficheiro separado
 const defaultConfigs = {
   geral: {
     nome_empresa: "Minha Empresa Ltda",
@@ -127,24 +126,19 @@ const defaultConfigs = {
 };
 
 export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
-  // GET – obter todas as configurações
   app.withTypeProvider<ZodTypeProvider>().get("/configuracoes", {},
     async (req, reply) => {
       try {
-        // Buscar todas as linhas da tabela system_config
         const configs = await prisma.system_config.findMany();
-        // Converter para objecto { key: value }
         const result: Record<string, any> = {};
         configs.forEach((c) => {
           result[c.key] = c.value;
         });
 
-        // Se não existir nenhuma configuração, retornar os defaults
         if (Object.keys(result).length === 0) {
           return reply.status(200).send(defaultConfigs);
         }
 
-        // Juntar com os defaults para garantir que campos novos apareçam
         const merged = { ...defaultConfigs, ...result };
         return reply.status(200).send(merged);
       } catch (error: any) {
@@ -154,10 +148,9 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
     }
   );
 
-  // PUT – actualizar configurações (enviar objecto com as secções a actualizar)
   app.withTypeProvider<ZodTypeProvider>().put("/configuracoes", {
     schema: {
-      body: z.record(z.string(), z.any()), // aceita qualquer objecto com chaves string
+      body: z.record(z.string(), z.any()), 
     },
   }, async (req, reply) => {
     const updates = req.body as Record<string, any>;
@@ -165,7 +158,6 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
     const userId = (req as any).user?.id;
 
     try {
-      // Para cada chave recebida, fazer upsert
       for (const key of Object.keys(updates)) {
         await prisma.system_config.upsert({
           where: { key },
@@ -174,7 +166,6 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
         });
       }
 
-      // Log da operação
       try {
         await prisma.logs.create({
           data: {

@@ -64,7 +64,6 @@ export const EditProduct = async (app: FastifyInstance) => {
                 return reply.status(404).send({ message: "Produto não encontrado" });
             }
 
-            // Montar lista de alterações
             const alteracoes: string[] = [];
 
             if (name_product && productExists.name_product !== name_product) {
@@ -97,9 +96,7 @@ export const EditProduct = async (app: FastifyInstance) => {
 
             const duration = Date.now() - startTime;
 
-            // Se quantidade for 0 ou menos, eliminar o produto
             if (Number(product.quantity) <= 0) {
-                // Guardar no histórico de expirados antes de eliminar
                 await prisma.produtosExpirados.create({
                     data: {
                         id_product: product.id_product,
@@ -123,14 +120,14 @@ export const EditProduct = async (app: FastifyInstance) => {
                     user,
                     user_id: userId,
                     details: `Produto eliminado automaticamente (quantidade zerada). ` +
-                             `ID: ${id_product} | Nome: "${productExists.name_product}"`,
+                        `ID: ${id_product} | Nome: "${productExists.name_product}"`,
                     ip,
                     resource: "products",
                     resource_id: id_product,
                     duration,
                 });
 
-                return reply.status(200).send({ 
+                return reply.status(200).send({
                     message: "Produto eliminado (quantidade zerada)",
                     product: productExists.name_product
                 });
@@ -141,10 +138,10 @@ export const EditProduct = async (app: FastifyInstance) => {
                 user,
                 user_id: userId,
                 details: `Produto atualizado com sucesso. ` +
-                         `ID: ${id_product} | ` +
-                         (alteracoes.length > 0 
-                            ? `Alterações: ${alteracoes.join('; ')}` 
-                            : 'Nenhuma alteração detectada'),
+                    `ID: ${id_product} | ` +
+                    (alteracoes.length > 0
+                        ? `Alterações: ${alteracoes.join('; ')}`
+                        : 'Nenhuma alteração detectada'),
                 ip,
                 resource: "products",
                 resource_id: id_product,
@@ -168,10 +165,10 @@ export const EditProduct = async (app: FastifyInstance) => {
             });
 
             console.error("Erro ao editar produto:", error);
-            
-            return reply.status(500).send({ 
+
+            return reply.status(500).send({
                 error: "Erro ao editar produto",
-                message: error.message 
+                message: error.message
             });
         }
     });

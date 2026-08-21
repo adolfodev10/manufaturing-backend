@@ -46,8 +46,8 @@ export const GetBackupStats = async (app: FastifyInstance) => {
                     average_duration: Math.round(avg_duration),
                     success_rate,
                     storage_used: total_size,
-                    storage_available: 1073741824 * 10, // 10 GB fictício
-                    tables_count: 8, // fictício
+                    storage_available: 1073741824 * 10, 
+                    tables_count: 8, 
                 };
 
                 const duration = Date.now() - startTime;

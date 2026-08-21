@@ -24,7 +24,6 @@ export const GetAllFornecedores = async (app: FastifyInstance) => {
             try {
                 const skip = (page - 1) * limit;
 
-                // Construir filtros
                 const where: any = {};
 
                 if (search) {
@@ -44,7 +43,6 @@ export const GetAllFornecedores = async (app: FastifyInstance) => {
                     where.tipo = tipo;
                 }
 
-                // Buscar fornecedores com paginação
                 const [fornecedores, total] = await Promise.all([
                     prisma.fornecedores.findMany({
                         where,

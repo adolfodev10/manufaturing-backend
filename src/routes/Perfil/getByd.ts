@@ -38,7 +38,6 @@ export const BuscarPerfilPorId = async (app: FastifyInstance) => {
                     return reply.status(404).send({ error: "Perfil não encontrado" });
                 }
 
-                // Buscar detalhes das permissões
                 const permissoesIds = JSON.parse(perfil.permissoes);
                 const permissoesDetalhes = await prisma.permissao.findMany({
                     where: {

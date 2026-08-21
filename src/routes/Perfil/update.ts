@@ -25,7 +25,6 @@ export const AtualizarPerfil = async (app: FastifyInstance) => {
                 const { id } = req.params;
                 const updateData = req.body;
 
-                // Verificar se o perfil existe
                 const perfilExistente = await prisma.perfil.findUnique({
                     where: { id },
                 });
@@ -34,12 +33,10 @@ export const AtualizarPerfil = async (app: FastifyInstance) => {
                     return reply.status(404).send({ error: "Perfil não encontrado" });
                 }
 
-                // Verificar se é um perfil do sistema (não pode ser alterado)
                 if (perfilExistente.is_system) {
                     return reply.status(403).send({ error: "Perfil do sistema não pode ser alterado" });
                 }
 
-                // Verificar se já existe outro perfil com o mesmo nome
                 if (updateData.nome && updateData.nome !== perfilExistente.nome) {
                     const perfilComMesmoNome = await prisma.perfil.findFirst({
                         where: { 
@@ -53,7 +50,6 @@ export const AtualizarPerfil = async (app: FastifyInstance) => {
                     }
                 }
 
-                // Se for perfil padrão, remover padrão de outros perfis
                 if (updateData.is_default) {
                     await prisma.perfil.updateMany({
                         where: { 
@@ -64,7 +60,6 @@ export const AtualizarPerfil = async (app: FastifyInstance) => {
                     });
                 }
 
-                // Preparar dados para atualização
                 const dataToUpdate: any = { ...updateData };
                 
                 if (updateData.permissoes) {

@@ -22,7 +22,6 @@ export const ListarUsuariosPorPerfil = async (app: FastifyInstance) => {
 
                 const skip = (page - 1) * limit;
 
-                // Verificar se perfil existe
                 const perfil = await prisma.perfil.findUnique({
                     where: { id },
                 });
@@ -31,7 +30,6 @@ export const ListarUsuariosPorPerfil = async (app: FastifyInstance) => {
                     return reply.status(404).send({ error: "Perfil não encontrado" });
                 }
 
-                // Buscar usuários com este perfil
                 const [userPerfis, total] = await Promise.all([
                     prisma.userPerfil.findMany({
                         where: { perfil_id: id },

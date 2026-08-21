@@ -25,21 +25,16 @@ export const CreateBackup = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                // Gerar nome do arquivo
                 const filename = `backup_${format(new Date(), "yyyyMMdd_HHmmss")}.sql${compression ? '.gz' : ''}`;
                 
-                // Simular tamanho do backup (aleatório entre 1MB e 100MB)
                 const size = Math.floor(Math.random() * (100000000 - 1000000 + 1)) + 1000000;
                 
-                // Simular duração (entre 1 e 10 segundos)
                 const duration = Math.floor(Math.random() * 9000) + 1000;
 
-                // Preparar o valor de tables
                 const tablesValue = tables && tables.length > 0 
                     ? JSON.stringify(tables) 
                     : JSON.stringify([]);
 
-                // Criar registro do backup no banco
                 const backup = await prisma.backups.create({
                     data: {
                         name,
@@ -60,7 +55,6 @@ export const CreateBackup = async (app: FastifyInstance) => {
 
                 const durationTotal = Date.now() - startTime;
 
-                // ===== LOG DE SUCESSO =====
                 await logger.success({
                     action: "Criar Backup",
                     user,
@@ -74,7 +68,6 @@ export const CreateBackup = async (app: FastifyInstance) => {
                     duration: durationTotal,
                 });
 
-                // Na resposta, converter de volta para array
                 const backupResponse = {
                     ...backup,
                     size: Number(backup.size),
@@ -86,7 +79,6 @@ export const CreateBackup = async (app: FastifyInstance) => {
             } catch (error: any) {
                 const durationTotal = Date.now() - startTime;
 
-                // ===== LOG DE ERRO =====
                 await logger.error({
                     action: "Criar Backup",
                     user,
@@ -108,7 +100,6 @@ export const CreateBackup = async (app: FastifyInstance) => {
     );
 };
 
-// Função auxiliar para formatar bytes
 function formatBytes(bytes: number, decimals = 2) {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;

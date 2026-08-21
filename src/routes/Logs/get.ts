@@ -34,7 +34,6 @@ export const GetLogs = async (app: FastifyInstance) => {
             const limitNum = parseInt(limit);
             const skip = (pageNum - 1) * limitNum;
 
-            // Construir filtros
             const where: any = {};
 
             if (level) {
@@ -77,7 +76,6 @@ export const GetLogs = async (app: FastifyInstance) => {
                 ];
             }
 
-            // Buscar logs com paginação
             const [logs, total] = await Promise.all([
                 prisma.logs.findMany({
                     where,

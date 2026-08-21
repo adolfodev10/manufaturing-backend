@@ -29,7 +29,6 @@ export const UpdateFornecedor = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                // Verificar se fornecedor existe
                 const existingFornecedor = await prisma.fornecedores.findUnique({
                     where: { id }
                 });
@@ -41,7 +40,6 @@ export const UpdateFornecedor = async (app: FastifyInstance) => {
                     });
                 }
 
-                // Verificar se email já existe (se estiver sendo alterado)
                 if (updateData.email && updateData.email !== existingFornecedor.email) {
                     const emailExists = await prisma.fornecedores.findUnique({
                         where: { email: updateData.email }
@@ -55,7 +53,6 @@ export const UpdateFornecedor = async (app: FastifyInstance) => {
                     }
                 }
 
-                // Verificar se NIF já existe (se estiver sendo alterado)
                 if (updateData.nif && updateData.nif !== existingFornecedor.nif) {
                     const nifExists = await prisma.fornecedores.findUnique({
                         where: { nif: updateData.nif }

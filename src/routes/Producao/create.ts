@@ -22,7 +22,6 @@ export const CreateProducao = async (app: FastifyInstance) => {
     const data = request.body;
 
     try {
-      // Criar produção
       const producao = await prisma.producoes.create({
         data: {
           produto_id: data.produto_id,
@@ -49,7 +48,6 @@ export const CreateProducao = async (app: FastifyInstance) => {
         },
       });
 
-      // Dar baixa nas matérias-primas
       for (const mp of data.materias_primas) {
         await prisma.materiasPrimas.update({
           where: { id: mp.materia_prima_id },

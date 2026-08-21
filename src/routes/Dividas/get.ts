@@ -33,7 +33,6 @@ export const GetAllDivida = async (app: FastifyInstance) => {
                     },
                 });
 
-                // Estatísticas rápidas
                 const totalDividas = dividas.length;
                 const totalPendentes = dividas.filter(d => d.approval === 'NAO_PAGAS').length;
                 const totalPagas = dividas.filter(d => d.approval === 'PAGAS').length;

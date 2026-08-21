@@ -17,15 +17,10 @@ export const CreateVenda = async (app: FastifyInstance) => {
             const startTime = Date.now();
             const ip = req.ip || req.socket.remoteAddress || 'unknown';
 
-            // 👇 Pegar id_user do corpo da requisição
             const { id_user, user_id } = req.body as any;
 
             const userIdFromRequest = id_user || user_id;
 
-            console.log("🐛🐛🐛 id_user:", id_user);
-            console.log("🐛🐛🐛 user_id:", user_id);
-            console.log("🐛🐛🐛 userIdFromRequest:", userIdFromRequest);
-            // 👇 Buscar usuário pelo id_user
             let userId: string | undefined;
             let userName = 'sistema';
 
@@ -33,19 +28,16 @@ export const CreateVenda = async (app: FastifyInstance) => {
                 const userRecord = await prisma.users.findFirst({
                     where: {
                         OR: [
-                            { id_user: userIdFromRequest }, // Caso o frontend envie id_user
-                            { email: userIdFromRequest }, // Caso o frontend envie email
+                            { id_user: userIdFromRequest }, 
+                            { email: userIdFromRequest },
                         ]
                     }
                 });
 
                 userId = userRecord?.id_user;
                 userName = userRecord?.name || 'sistema';
-
-                console.log("🐛🐛🐛 User encontrado: ", userRecord);
             }
 
-            // 👇 Se não encontrou, tenta buscar pelo email
             if (!userId) {
                 console.error("❌ Usuário não encontrado com ID:", id_user);
                 return res.status(400).send({

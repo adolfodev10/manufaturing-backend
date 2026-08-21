@@ -25,7 +25,6 @@ export const AtualizarPermissao = async (app: FastifyInstance) => {
                 const { id } = req.params;
                 const updateData = req.body;
 
-                // Verificar se a permissão existe
                 const permissaoExistente = await prisma.permissao.findUnique({
                     where: { id },
                 });
@@ -34,7 +33,6 @@ export const AtualizarPermissao = async (app: FastifyInstance) => {
                     return reply.status(404).send({ error: "Permissão não encontrada" });
                 }
 
-                // Verificar se já existe outra permissão com o mesmo nome (se estiver atualizando o nome)
                 if (updateData.nome && updateData.nome !== permissaoExistente.nome) {
                     const permissaoComMesmoNome = await prisma.permissao.findFirst({
                         where: { 

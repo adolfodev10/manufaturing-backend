@@ -81,7 +81,6 @@ export const CreateFatura = async (app: FastifyInstance) => {
           statusAGT,
         } = req.body;
 
-        // Verificar se já existe fatura com este número
         const existente = await prisma.faturas.findUnique({
           where: { numero },
         });

@@ -33,7 +33,6 @@ export const CreateFornecedor = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                // Verificar se já existe fornecedor com mesmo email
                 const existingEmail = await prisma.fornecedores.findUnique({
                     where: { email }
                 });
@@ -45,7 +44,6 @@ export const CreateFornecedor = async (app: FastifyInstance) => {
                     });
                 }
 
-                // Verificar se já existe fornecedor com mesmo NIF (se fornecido)
                 if (nif) {
                     const existingNif = await prisma.fornecedores.findUnique({
                         where: { nif }
@@ -59,7 +57,6 @@ export const CreateFornecedor = async (app: FastifyInstance) => {
                     }
                 }
 
-                // Criar fornecedor
                 const fornecedor = await prisma.fornecedores.create({
                     data: {
                         nome,

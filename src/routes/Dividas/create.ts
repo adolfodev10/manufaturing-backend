@@ -18,7 +18,6 @@ export const CreateDivida = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                // Verificar se o cliente existe
                 const clientExists = await prisma.clients.findUnique({
                     where: { id_client: client_id },
                     select: { id_client: true, name: true }
@@ -37,12 +36,11 @@ export const CreateDivida = async (app: FastifyInstance) => {
                         duration,
                     });
 
-                    return reply.status(404).send({ 
-                        error: "Cliente não encontrado" 
+                    return reply.status(404).send({
+                        error: "Cliente não encontrado"
                     });
                 }
 
-                // Verificar se já existe dívida com mesmo ID
                 const existingDivida = await prisma.dividas.findUnique({
                     where: { id_divida }
                 });
@@ -61,8 +59,8 @@ export const CreateDivida = async (app: FastifyInstance) => {
                         duration,
                     });
 
-                    return reply.status(409).send({ 
-                        error: "Já existe uma dívida com este ID" 
+                    return reply.status(409).send({
+                        error: "Já existe uma dívida com este ID"
                     });
                 }
 
@@ -75,11 +73,11 @@ export const CreateDivida = async (app: FastifyInstance) => {
                     updated_at: new Date(),
                     created_at: new Date(),
                 };
-                
+
                 if (product_id) {
                     data.product_id = product_id;
                 }
-                
+
                 const divida = await prisma.dividas.create({ data });
 
                 const duration = Date.now() - startTime;
@@ -89,11 +87,11 @@ export const CreateDivida = async (app: FastifyInstance) => {
                     user,
                     user_id: userId,
                     details: `Dívida registada com sucesso. ` +
-                             `ID: ${id_divida} | ` +
-                             `Cliente: ${clientExists.name} (${client_id}) | ` +
-                             `Valor: ${price.toLocaleString()} | ` +
-                             `Produto: ${product_id || 'Não especificado'} | ` +
-                             `Estado: Pendente (NAO_PAGAS)`,
+                        `ID: ${id_divida} | ` +
+                        `Cliente: ${clientExists.name} (${client_id}) | ` +
+                        `Valor: ${price.toLocaleString()} | ` +
+                        `Produto: ${product_id || 'Não especificado'} | ` +
+                        `Estado: Pendente (NAO_PAGAS)`,
                     ip,
                     resource: "dividas",
                     resource_id: id_divida,
@@ -117,10 +115,10 @@ export const CreateDivida = async (app: FastifyInstance) => {
                 });
 
                 console.error("Erro ao criar dívida:", error);
-                
-                return reply.status(500).send({ 
+
+                return reply.status(500).send({
                     error: "Erro ao registar dívida",
-                    message: error.message 
+                    message: error.message
                 });
             }
         }

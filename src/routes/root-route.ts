@@ -1,6 +1,5 @@
 import { FastifyInstance } from "fastify";
 
-
 export const RootRoute = (app: FastifyInstance) => {
   app.get('/', async (request, reply) => {
     reply.type('text/html').send(`

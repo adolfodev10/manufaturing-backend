@@ -20,7 +20,6 @@ export const DeleteFornecedor = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                // Verificar se fornecedor existe
                 const fornecedor = await prisma.fornecedores.findUnique({
                     where: { id },
                     include: {
@@ -39,7 +38,6 @@ export const DeleteFornecedor = async (app: FastifyInstance) => {
                     });
                 }
 
-                // Verificar se o fornecedor tem compras ou produtos associados
                 if (fornecedor._count.compras > 0) {
                     return reply.status(400).send({
                         success: false,

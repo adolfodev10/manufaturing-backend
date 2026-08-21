@@ -19,7 +19,6 @@ export const AddProductInStock = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                // Verificar se já existe produto com mesmo nome (opcional)
                 const existingProduct = await prisma.products.findFirst({
                     where: { 
                         name_product,

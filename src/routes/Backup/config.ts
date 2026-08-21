@@ -16,7 +16,6 @@ export const GetBackupConfig = async (app: FastifyInstance) => {
                 let config = await prisma.backupConfig.findFirst();
 
                 if (!config) {
-                    // Criar configuração padrão
                     config = await prisma.backupConfig.create({
                         data: {
                             enabled: true,
@@ -108,10 +107,8 @@ export const SaveBackupConfig = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
 
             try {
-                // Buscar configuração anterior para log de alterações
                 const oldConfig = await prisma.backupConfig.findFirst();
 
-                // Calcular próximo backup
                 const next_run = calculateNextRun(config);
 
                 const dataToSave = {
@@ -130,7 +127,6 @@ export const SaveBackupConfig = async (app: FastifyInstance) => {
                     },
                 });
 
-                // CONVERTER de volta para array na resposta
                 const response = {
                     ...updated,
                     tables: updated.tables ? JSON.parse(updated.tables) : [],
@@ -138,7 +134,6 @@ export const SaveBackupConfig = async (app: FastifyInstance) => {
 
                 const duration = Date.now() - startTime;
 
-                // Montar detalhes das alterações
                 const alteracoes: string[] = [];
                 
                 if (oldConfig) {
