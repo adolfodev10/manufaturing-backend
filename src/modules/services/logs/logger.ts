@@ -1,4 +1,4 @@
-import { api } from "../api/axios";
+import { prisma } from "../../../lib/prismaclient";
 
 interface LogData {
   level: "INFO" | "WARNING" | "ERROR" | "SUCCESS";
@@ -15,31 +15,57 @@ interface LogData {
 }
 
 export const logger = {
-  async info(data: Omit<LogData, 'level'>) {
-    return this.log({ ...data, level: 'INFO' });
+  async info(data: Omit<LogData, "level">) {
+    return this.log({ ...data, level: "INFO" });
   },
 
-  async warning(data: Omit<LogData, 'level'>) {
-    return this.log({ ...data, level: 'WARNING' });
+  async warning(data: Omit<LogData, "level">) {
+    return this.log({ ...data, level: "WARNING" });
   },
 
-  async error(data: Omit<LogData, 'level'>) {
-    return this.log({ ...data, level: 'ERROR' });
+  async error(data: Omit<LogData, "level">) {
+    return this.log({ ...data, level: "ERROR" });
   },
 
-  async success(data: Omit<LogData, 'level'>) {
-    return this.log({ ...data, level: 'SUCCESS' });
+  async success(data: Omit<LogData, "level">) {
+    return this.log({ ...data, level: "SUCCESS" });
   },
 
   async log(data: LogData) {
     try {
-      await api.post('/logs/create', data);
+      await prisma.logs.create({
+        data: {
+          level: data.level,
+          action: data.action,
+          user: data.user,
+          user_id: data.user_id,
+          details: data.details,
+          ip: data.ip,
+          resource: data.resource,
+          resource_id: data.resource_id,
+          old_value:
+            typeof data.old_value === "string"
+              ? data.old_value
+              : data.old_value
+                ? JSON.stringify(data.old_value)
+                : null,
+          new_value:
+            typeof data.new_value === "string"
+              ? data.new_value
+              : data.new_value
+                ? JSON.stringify(data.new_value)
+                : null,
+          duration: data.duration,
+        },
+      });
     } catch (error) {
-      console.error('Erro ao criar log:', error);
+      console.error("Erro ao criar log:", error);
     }
   },
 
   logSync(data: LogData) {
-    api.post('/logs/create', data).catch(console.error);
+    // Grava direto via Prisma (não há versão "sync" real com Prisma,
+    // mas podes chamar sem await)
+    this.log(data).catch(console.error);
   },
 };
