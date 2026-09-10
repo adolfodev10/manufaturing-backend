@@ -83,6 +83,7 @@ import { ForgotPassword } from "./routes/Auth/forgot-password";
 import { ResetPassword } from "./routes/Auth/reset-password";
 import { GetEstoqueAlerts } from "./routes/Notification/estoque-alerts";
 import { GetFaturaByOperador } from "./routes/Faturas/getFaturaByOperator";
+import { GetProximoNumero } from "./routes/Faturas/getProximoNumero";
 
 
 const app = fastify;
@@ -215,7 +216,7 @@ app.register(GetFaturaByNumero);
 app.register(CreateFatura);
 app.register(UpdateFatura);
 app.register(GetFaturaByOperador);
-
+app.register(GetProximoNumero);
 
 //Perfil
 
