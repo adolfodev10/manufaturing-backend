@@ -82,6 +82,7 @@ import { DeleteFormula } from "./routes/Formulas/delete";
 import { ForgotPassword } from "./routes/Auth/forgot-password";
 import { ResetPassword } from "./routes/Auth/reset-password";
 import { GetEstoqueAlerts } from "./routes/Notification/estoque-alerts";
+import { GetFaturaByOperador } from "./routes/Faturas/getFaturaByOperator";
 
 
 const app = fastify;
@@ -213,6 +214,7 @@ app.register(GetFaturaById);
 app.register(GetFaturaByNumero);
 app.register(CreateFatura);
 app.register(UpdateFatura);
+app.register(GetFaturaByOperador);
 
 
 //Perfil

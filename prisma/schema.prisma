@@ -220,6 +220,9 @@ model faturas {
   operador   String
   operadorId String?
 
+  formaPagamento String?  @default("CACHE")
+  observacoes     String?  @db.Text
+
   status    String  @default("EMITIDA")
   statusAGT String? @default("PENDENTE")
 
@@ -232,6 +235,8 @@ model faturas {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  @@index([operadorId])
+  @@index([dataEmissao])
   @@map("faturas")
 }
 
