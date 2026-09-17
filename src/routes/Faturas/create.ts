@@ -84,6 +84,27 @@ export const CreateFatura = async (app: FastifyInstance) => {
           statusAGT,
         } = req.body;
 
+        if (!operadorId) {
+          return res.status(400).send({
+            success: false,
+            message: "O ID do operador é obrigatório",
+          });
+        }
+
+        const caixaAberto = await prisma.caixa.findFirst({
+          where: {
+            operadorId,
+            status: "ABERTA",
+          },
+        });
+
+        if (!caixaAberto) {
+          return res.status(400).send({
+            success: false,
+            message: "Não há caixa aberto. Abra um caixa antes de vender.",
+          });
+        }
+
         const existente = await prisma.faturas.findUnique({
           where: { numero },
         });
@@ -97,7 +118,7 @@ export const CreateFatura = async (app: FastifyInstance) => {
 
         const fatura = await prisma.faturas.create({
           data: {
-            id_fatura: randomUUID(),
+            id_fatura: randomUUID() ?? "fatura-" + Date.now(),
             numero,
             dataEmissao: new Date(dataEmissao),
             dataVencimento: dataVencimento ? new Date(dataVencimento) : null,
@@ -124,9 +145,11 @@ export const CreateFatura = async (app: FastifyInstance) => {
             statusAGT: statusAGT || "PENDENTE",
             hashFiscal,
             qrCodeData,
+            caixaId: caixaAberto.id,
+
             itens: {
               create: itens.map((item) => ({
-                id: randomUUID(),
+                id: randomUUID() ?? "item-" + Date.now(),
                 codigo: item.codigo || "-",
                 descricao: item.descricao,
                 quantidade: item.quantidade,

@@ -84,8 +84,7 @@ import { ResetPassword } from "./routes/Auth/reset-password";
 import { GetEstoqueAlerts } from "./routes/Notification/estoque-alerts";
 import { GetFaturaByOperador } from "./routes/Faturas/getFaturaByOperator";
 import { GetProximoNumero } from "./routes/Faturas/getProximoNumero";
-import { GetAllCaixa } from "./routes/Caixa/get";
-import { CreateCaixa } from "./routes/Caixa/create";
+import { caixaRoutes } from "./routes/Caixa/caixa.routes";
 
 
 const app = fastify;
@@ -260,9 +259,7 @@ app.register(GetFormulas);
 app.register(DeleteFormula);
 
 // Caixa
-app.register(GetAllCaixa);
-app.register(CreateCaixa);
-
+app.register(caixaRoutes);
 
 // Email
 app.register(SmsRoutes);

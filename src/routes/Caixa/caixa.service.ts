@@ -1,31 +1,127 @@
 import { prisma } from "../../lib/prismaclient";
+import { CreateCaixaInput, FecharCaixaInput } from "../../modules/validations/caixa/caixa.schema";
 
-type CaixaLevel = "ABERTA" | "FECHADA";
+/**
+ * Abre um novo caixa para o operador.
+ * Regra: um operador só pode ter 1 caixa ABERTA.
+ */
+export async function abrirCaixa(data: CreateCaixaInput) {
+  // 1. Verificar se já tem caixa aberta
+  const caixaAberta = await prisma.caixa.findFirst({
+    where: {
+      operadorId: data.operador_id,
+      status: "ABERTA",
+    },
+  });
 
-interface CaixaData {
-    id: string;
-    status: CaixaLevel;
-    operador: string;
-    operador_id: string;
-    data_abertura?: Date;
-    data_fechadura?: Date;
+  if (caixaAberta) {
+    throw new Error("Já existe um caixa aberto para este operador.");
+  }
+
+  // 2. Criar
+  return prisma.caixa.create({
+    data: {
+      operador: data.operador,
+      operador_id: data.operador_id,
+      status: "ABERTA",
+      valorInicial: data.valorInicial,
+      observacoes: data.observacoes,
+    },
+  });
 }
 
-export async function createCaixa(data: CaixaData) {
-    try {
-        const caixa = await prisma.caixa.create({
-            data: {
-                status: data.status,
-                data_fechadura: new Date() ?? data.data_fechadura,
-                operadorId: data.operador_id,
-                data_abertura: data.data_abertura ?? new Date(),
-                id: data.id,
-                operador: data.operador ? "OPERADOR" : "ADMINISTRADOR"
-            },
-        });
-        return caixa;
-    } catch (error) {
-        console.error("Erro ao criar caixa:", error);
-        return null;
+/**
+ * Devolve o caixa aberto do operador (ou null).
+ */
+export async function getCaixaAberto(operadorId: string) {
+  return prisma.caixa.findFirst({
+    where: { operadorId, status: "ABERTA" },
+    include: {
+      faturas: {
+        orderBy: { dataEmissao: "desc" },
+      },
+    },
+  });
+}
+
+/**
+ * Calcula o resumo (totais) de um caixa com base nas faturas ligadas.
+ */
+export async function calcularResumoCaixa(caixaId: string) {
+  const caixa = await prisma.caixa.findUnique({
+    where: { id: caixaId },
+    include: { faturas: true },
+  });
+
+  if (!caixa) throw new Error("Caixa não encontrado.");
+
+  let totalDinheiro = 0;
+  let totalTPA = 0;
+  let totalMisto = 0;
+
+  for (const f of caixa.faturas) {
+    const fp = f.formaPagamento || "";
+    if (fp === "CACHE" || fp === "Numerário") {
+      totalDinheiro += f.totalPagar;
+    } else if (fp === "TPA") {
+      totalTPA += f.totalPagar;
+    } else if (fp === "MISTO") {
+      // Aqui assumimos que a fatura guarda os splits em observacoes
+      // ou podes adicionar campos próprios (valorDinheiro/valorTPA)
+      totalMisto += f.totalPagar;
     }
+  }
+
+  const totalVendas = caixa.faturas.reduce((s, f) => s + f.totalPagar, 0);
+  const valorInicial = caixa.valorInicial ?? 0;
+
+  return {
+    valorInicial,
+    totalVendas,
+    totalDinheiro,
+    totalTPA,
+    totalMisto,
+    totalFaturas: caixa.faturas.length,
+    saldoFinal: valorInicial + totalDinheiro, // saldo em espécie
+  };
+}
+
+/**
+ * Fecha o caixa: calcula totais, grava snapshot, marca FECHADA.
+ */
+export async function fecharCaixa(data: FecharCaixaInput) {
+  const resumo = await calcularResumoCaixa(data.caixaId);
+
+  return prisma.caixa.update({
+    where: { id: data.caixaId },
+    data: {
+      status: "FECHADA",
+      data_fechadura: new Date(),
+      valorFinal: data.valorFinal ?? resumo.saldoFinal,
+      totalVendas: resumo.totalVendas,
+      totalDinheiro: resumo.totalDinheiro,
+      totalTPA: resumo.totalTPA,
+      totalFaturas: resumo.totalFaturas,
+      observacoes: data.observacoes,
+    },
+  });
+}
+
+/**
+ * Lista todos os caixas (para admin), com filtros opcionais.
+ */
+export async function listarCaixas(filtros?: {
+  operadorId?: string;
+  status?: "ABERTA" | "FECHADA";
+}) {
+  return prisma.caixa.findMany({
+    where: {
+      ...(filtros?.operadorId && { operadorId: filtros.operadorId }),
+      ...(filtros?.status && { status: filtros.status }),
+    },
+    include: {
+      _count: { select: { faturas: true } },
+    },
+    orderBy: { data_abertura: "desc" },
+  });
 }
