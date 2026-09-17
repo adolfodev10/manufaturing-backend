@@ -18,7 +18,7 @@ export const GetAllCaixa = async (app: FastifyInstance) => {
                         operador: true,
                         data_abertura: true,
                         data_fechadura: true,
-                        operadorId: true,
+                        operador_id: true,
                     }
                 });
 

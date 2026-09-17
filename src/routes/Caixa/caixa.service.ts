@@ -9,7 +9,7 @@ export async function abrirCaixa(data: CreateCaixaInput) {
   // 1. Verificar se já tem caixa aberta
   const caixaAberta = await prisma.caixa.findFirst({
     where: {
-      operadorId: data.operador_id,
+      operador_id: data.operador_id,
       status: "ABERTA",
     },
   });
@@ -35,7 +35,7 @@ export async function abrirCaixa(data: CreateCaixaInput) {
  */
 export async function getCaixaAberto(operadorId: string) {
   return prisma.caixa.findFirst({
-    where: { operadorId, status: "ABERTA" },
+    where: { operador_id: operadorId, status: "ABERTA" },
     include: {
       faturas: {
         orderBy: { dataEmissao: "desc" },
@@ -116,7 +116,7 @@ export async function listarCaixas(filtros?: {
 }) {
   return prisma.caixa.findMany({
     where: {
-      ...(filtros?.operadorId && { operadorId: filtros.operadorId }),
+      ...(filtros?.operadorId && { operador_id: filtros.operadorId }),
       ...(filtros?.status && { status: filtros.status }),
     },
     include: {

@@ -93,7 +93,7 @@ export const CreateFatura = async (app: FastifyInstance) => {
 
         const caixaAberto = await prisma.caixa.findFirst({
           where: {
-            operadorId,
+            operador_id: operadorId,
             status: "ABERTA",
           },
         });
