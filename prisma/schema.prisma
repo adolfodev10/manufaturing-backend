@@ -41,6 +41,31 @@ model Notification {
   read       Boolean  @default(false)
 }
 
+model Caixa {
+  id      String  @id @default(uuid())
+  operador String
+  operador_id String
+  status CaixaStatus @default(ABERTA)
+  valorInicial Float? @default(0)
+  valorFinal Float? 
+  totalVendas Float @default(0)
+  totalDinheiro Float @default(0)
+  totalTPA Float @default(0)
+  totalFaturas Int @default(0)
+  data_abertura DateTime @default(now())
+  data_fechadura DateTime?
+  observacoes String? @db.Text
+
+  faturas faturas[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([operador_id])
+  @@index([status])
+  @@map("caixa")
+}
+
 model Logs {
   id          String   @id @default(uuid())
   timestamp   DateTime @default(now())
@@ -230,6 +255,9 @@ model faturas {
   qrCodeData      String? @db.Text
   codigoValidacao String?
 
+  caixaId String?
+  caixa   Caixa? @relation(fields: [caixaId], references: [id], onDelete: SetNull)
+
   itens faturaItem[]
 
   created_at DateTime @default(now())
@@ -237,6 +265,7 @@ model faturas {
 
   @@index([operadorId])
   @@index([dataEmissao])
+  @@index([caixaId])
   @@map("faturas")
 }
 
@@ -443,6 +472,10 @@ enum venda_methodPayment {
   CACHE
   TPA
 }
+ enum CaixaStatus {
+  ABERTA
+  FECHADA
+ }
 
 enum venda_estado {
   VENDIDO
