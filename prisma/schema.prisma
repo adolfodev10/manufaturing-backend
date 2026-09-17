@@ -44,7 +44,7 @@ model Notification {
 model Caixa {
   id      String  @id @default(uuid())
   operador String
-  operador_id String
+  operador_id String  @map("operador_id")
   status CaixaStatus @default(ABERTA)
   valorInicial Float? @default(0)
   valorFinal Float? 
@@ -255,7 +255,7 @@ model faturas {
   qrCodeData      String? @db.Text
   codigoValidacao String?
 
-  caixaId String?
+  caixaId String?   @map("caixa_id")
   caixa   Caixa? @relation(fields: [caixaId], references: [id], onDelete: SetNull)
 
   itens faturaItem[]
