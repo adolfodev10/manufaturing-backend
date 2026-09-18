@@ -15,7 +15,15 @@ export const DeleteProduct = async (app: FastifyInstance) => {
     }, async (req: FastifyRequest, reply) => {
         const startTime = Date.now();
         const { id_product } = req.params as { id_product: string };
+        const user = (req as any).user;
         const ip = req.ip || req.socket.remoteAddress || "unknown";
+
+        const rolesPermitidas = ["ADMINISTRADOR", "GERENTE"];
+        if (!rolesPermitidas.includes(user?.role)) {
+            return reply.status(403).send({
+                error: "Não tens permissão para apagar produtos"
+            });
+        }
 
         try {
             const authHeader = req.headers.authorization;

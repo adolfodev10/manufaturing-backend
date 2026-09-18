@@ -85,6 +85,7 @@ import { GetEstoqueAlerts } from "./routes/Notification/estoque-alerts";
 import { GetFaturaByOperador } from "./routes/Faturas/getFaturaByOperator";
 import { GetProximoNumero } from "./routes/Faturas/getProximoNumero";
 import { caixaRoutes } from "./routes/Caixa/caixa.routes";
+import { authPlugin } from "./plugins/auth";
 
 
 const app = fastify;
@@ -129,6 +130,7 @@ app.register(multipart, {
 
 
 app.register(socketPlugin);
+app.register(authPlugin);
 
 //Root Route
 

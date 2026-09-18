@@ -22,7 +22,6 @@ export const GetAllVenda = async (app: FastifyInstance) => {
             const userId = (request as any).user?.id;
             const userRole = ((request as any).user?.role || "").toUpperCase();
 
-
             try {
                 const skip = (page - 1) * limit;
 

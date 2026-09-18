@@ -39,8 +39,10 @@ export const Login = async (app: FastifyInstance) => {
         }
 
         const token = await generateToken({
+          id: user.id_user,
           id_user: user.id_user,
-          email: user.email
+          email: user.email,
+          role: user.role,
         });
 
         const userWithoutPassword = {
