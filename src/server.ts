@@ -86,6 +86,10 @@ import { GetFaturaByOperador } from "./routes/Faturas/getFaturaByOperator";
 import { GetProximoNumero } from "./routes/Faturas/getProximoNumero";
 import { caixaRoutes } from "./routes/Caixa/caixa.routes";
 import { authPlugin } from "./plugins/auth";
+import { CreateCategoria } from "./routes/Categorias/create";
+import { GetCategorias } from "./routes/Categorias/get";
+import { UpdateCategoria } from "./routes/Categorias/update";
+import { DeleteCategoria } from "./routes/Categorias/delete";
 
 
 const app = fastify;
@@ -96,52 +100,52 @@ app.setSerializerCompiler(serializerCompiler);
 
 async function start() {
   app.register(fastifyCors, {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'https://judy-farma.vercel.app',
-    'https://judyfarma-support.vercel.app',
-    'https://eko-manufaturing.vercel.app',
-    'https://manufaturing-backend.onrender.com'
-  ],
-  credentials: true,
-  methods: [
-    "POST",
-    "DELETE",
-    "PUT",
-    "PATCH",
-    "OPTION",
-    "GET",
-  ]
-});
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'https://judy-farma.vercel.app',
+      'https://judyfarma-support.vercel.app',
+      'https://eko-manufaturing.vercel.app',
+      'https://manufaturing-backend.onrender.com'
+    ],
+    credentials: true,
+    methods: [
+      "POST",
+      "DELETE",
+      "PUT",
+      "PATCH",
+      "OPTION",
+      "GET",
+    ]
+  });
 
-app.register(multipart, {
-  limits: {
-    fieldNameSize: 100,
-    fieldSize: 1024 * 1024 * 5,
-    fields: 1000,
-    fileSize: 1024 * 1024 * 50,
-    files: 100,
-    headerPairs: 2000,
-    parts: 1000,
-  },
-  attachFieldsToBody: true,
-});
+  app.register(multipart, {
+    limits: {
+      fieldNameSize: 100,
+      fieldSize: 1024 * 1024 * 5,
+      fields: 1000,
+      fileSize: 1024 * 1024 * 50,
+      files: 100,
+      headerPairs: 2000,
+      parts: 1000,
+    },
+    attachFieldsToBody: true,
+  });
 
-await app.register(socketPlugin);
-await app.register(authPlugin);
+  await app.register(socketPlugin);
+  await app.register(authPlugin);
 
-//Root Route
-await app.register(RootRoute);
+  //Root Route
+  await app.register(RootRoute);
 
 
-//Auth
-await app.register(Login);
-await app.register(ValidationToken);
-await app.register(ForgotPassword);
-await app.register(ResetPassword);
+  //Auth
+  await app.register(Login);
+  await app.register(ValidationToken);
+  await app.register(ForgotPassword);
+  await app.register(ResetPassword);
 
 
   //User
@@ -259,6 +263,12 @@ await app.register(ResetPassword);
 
   // Caixa
   await app.register(caixaRoutes);
+
+  // Categorias
+  await app.register(CreateCategoria);
+  await app.register(GetCategorias);
+  await app.register(UpdateCategoria);
+  await app.register(DeleteCategoria);
 
   // Email
   await app.register(SmsRoutes);
