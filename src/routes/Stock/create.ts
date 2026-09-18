@@ -11,7 +11,7 @@ export const CreateStockProduct = async (app: FastifyInstance) => {
         },
     },
         async (request, reply) => {
-            const { name, price, category, quantity, date_validate } = request.body;
+            const { name, price,categoriaId, category, quantity, date_validate } = request.body;
             const productExists = await prisma.estoque.findFirst({
                 where: {
                     name: {
@@ -27,6 +27,7 @@ export const CreateStockProduct = async (app: FastifyInstance) => {
                     name: name ?? "",
                     price,
                     category: category,
+                    categoriaId: categoriaId ?? null,
                     date_validate: date_validate,
                     quantity: quantity,
                     updated_at: new Date(),
