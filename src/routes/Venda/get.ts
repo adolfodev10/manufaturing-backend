@@ -20,12 +20,17 @@ export const GetAllVenda = async (app: FastifyInstance) => {
             const ip = request.ip || request.socket.remoteAddress || "unknown";
             const user = (request as any).user?.email || "sistema";
             const userId = (request as any).user?.id;
+            const userRole = ((request as any).user?.role || "").toUpperCase();
 
 
             try {
                 const skip = (page - 1) * limit;
 
                 const where: any = {};
+
+                if(userRole === "OPERADOR") {
+                    where.user_id = userId;
+                }
 
                 if (status) {
                     where.status = status;
@@ -54,7 +59,7 @@ export const GetAllVenda = async (app: FastifyInstance) => {
                     action: "Listar Vendas",
                     user,
                     user_id: userId,
-                    details: `Listagem de vendas realizada. Total: ${total}`,
+                    details: `Listagem de vendas realizada. Total: ${total} (role: ${userRole})`,
                     ip,
                     resource: "vendas",
                     duration,
