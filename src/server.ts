@@ -93,7 +93,9 @@ const port = Number(process.env.PORT) || 3300;
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler);
 
-app.register(fastifyCors, {
+
+async function start() {
+  app.register(fastifyCors, {
   origin: [
     'http://localhost:3000',
     'http://localhost:3001',
@@ -128,144 +130,144 @@ app.register(multipart, {
   attachFieldsToBody: true,
 });
 
+await app.register(socketPlugin);
 
 //Root Route
-app.register(RootRoute);
+await app.register(RootRoute);
 
-app.register(socketPlugin);
-app.register(authPlugin);
-
-
-
-//User
-app.register(CreateUser);
-app.register(GetUser);
-app.register(GetUserById);
-app.register(UpdateUser);
-app.register(DeleteUser);
-// app.register(GetUserByFuncao);
 
 //Auth
-app.register(Login);
-app.register(ValidationToken);
-app.register(ForgotPassword);
-app.register(ResetPassword);
+await app.register(Login);
+await app.register(ValidationToken);
+await app.register(ForgotPassword);
+await app.register(ResetPassword);
 
-//Product
-app.register(AddProductInStock);
-app.register(GetAllProduct);
-app.register(GetAllProductTheVenda);
-app.register(CreateProduct)
-app.register(DeleteProduct);
-app.register(EditProduct);
-app.register(GetProfitByMonth)
+await app.register(authPlugin);
 
-//Notification
-app.register(GetNotificationByUserId);
-app.register(GetEstoqueAlerts);
-
-//Stock
-app.register(deleteProduct);
-app.register(CreateStockProduct);
-app.register(EditStock);
-app.register(GetAllProductStock);
-
-// Venda
-app.register(GetAllVenda);
-app.register(CreateVenda)
-
-//Client
-app.register(CreateClient);
-app.register(DeleteClient);
-app.register(UpdateClient);
-app.register(GetClient);
-
-// Divida
-app.register(CreateDivida);
-app.register(GetAllDivida);
-app.register(DeleteDivida);
-app.register(GetDividasByClientId);
-app.register(UpdateDivida);
-
-//Logs 
-app.register(CreateLog);
-app.register(GetLogs);
-app.register(GetLogById);
-app.register(ClearLogs);
-app.register(DeleteLog);
-app.register(GetLogsStats);
-
-//Backup
-app.register(GetBackups);
-app.register(GetBackupConfig);
-app.register(GetBackupStats);
-app.register(DownloadBackup);
-app.register(SaveBackupConfig);
-app.register(CreateBackup);
-app.register(DeleteBackup);
-
-//Permissoes
-app.register(CreatePermissao);
-app.register(ListarPermissoes);
-app.register(BuscarPermissaoPorId);
-app.register(AtualizarPermissao);
-app.register(DeletarPermissao);
+  //User
+  await app.register(CreateUser);
+  await app.register(GetUser);
+  await app.register(GetUserById);
+  await app.register(UpdateUser);
+  await app.register(DeleteUser);
+  // app.register(GetUserByFuncao);
 
 
-// Faturas
+  //Product
+  await app.register(AddProductInStock);
+  await app.register(GetAllProduct);
+  await app.register(GetAllProductTheVenda);
+  await app.register(CreateProduct)
+  await app.register(DeleteProduct);
+  await app.register(EditProduct);
+  await app.register(GetProfitByMonth)
 
-app.register(GetAllFaturas);
-app.register(GetFaturaById);
-app.register(GetFaturaByNumero);
-app.register(CreateFatura);
-app.register(UpdateFatura);
-app.register(GetFaturaByOperador);
-app.register(GetProximoNumero);
+  //Notification
+  await app.register(GetNotificationByUserId);
+  await app.register(GetEstoqueAlerts);
 
-//Perfil
+  //Stock
+  await app.register(deleteProduct);
+  await app.register(CreateStockProduct);
+  await app.register(EditStock);
+  await app.register(GetAllProductStock);
 
-app.register(CreatePerfil);
-app.register(ListarPerfis);
-app.register(BuscarPerfilPorId);
-app.register(AtualizarPerfil);
-app.register(DeletarPerfil);
-app.register(AtribuirPerfilUsuario);
-app.register(RemoverPerfilUsuario);
-app.register(ListarUsuariosPorPerfil);
+  // Venda
+  await app.register(GetAllVenda);
+  await app.register(CreateVenda)
 
-//Fornecedores 
+  //Client
+  await app.register(CreateClient);
+  await app.register(DeleteClient);
+  await app.register(UpdateClient);
+  await app.register(GetClient);
 
-app.register(CreateFornecedor);
-app.register(GetAllFornecedores);
-app.register(GetFornecedorById);
-app.register(UpdateFornecedor);
-app.register(DeleteFornecedor);
+  // Divida
+  await app.register(CreateDivida);
+  await app.register(GetAllDivida);
+  await app.register(DeleteDivida);
+  await app.register(GetDividasByClientId);
+  await app.register(UpdateDivida);
 
-// Configurações
+  //Logs 
+  await app.register(CreateLog);
+  await app.register(GetLogs);
+  await app.register(GetLogById);
+  await app.register(ClearLogs);
+  await app.register(DeleteLog);
+  await app.register(GetLogsStats);
 
-app.register(ConfiguracoesRoutes);
+  //Backup
+  await app.register(GetBackups);
+  await app.register(GetBackupConfig);
+  await app.register(GetBackupStats);
+  await app.register(DownloadBackup);
+  await app.register(SaveBackupConfig);
+  await app.register(CreateBackup);
+  await app.register(DeleteBackup);
 
-// Producao
-app.register(CreateProducao);
-app.register(GetProducoes);
+  //Permissoes
+  await app.register(CreatePermissao);
+  await app.register(ListarPermissoes);
+  await app.register(BuscarPermissaoPorId);
+  await app.register(AtualizarPermissao);
+  await app.register(DeletarPermissao);
 
-// Matérias-Primas
-app.register(CreateMateriaPrima);
-app.register(GetMateriasPrimas);
-app.register(UpdateMateriaPrima);
-app.register(DeleteMateriaPrima);
+  // Faturas
+  await app.register(GetAllFaturas);
+  await app.register(GetFaturaById);
+  await app.register(GetFaturaByNumero);
+  await app.register(CreateFatura);
+  await app.register(UpdateFatura);
+  await app.register(GetFaturaByOperador);
+  await app.register(GetProximoNumero);
 
-// Fórmulas
+  //Perfil
+  await app.register(CreatePerfil);
+  await app.register(ListarPerfis);
+  await app.register(BuscarPerfilPorId);
+  await app.register(AtualizarPerfil);
+  await app.register(DeletarPerfil);
+  await app.register(AtribuirPerfilUsuario);
+  await app.register(RemoverPerfilUsuario);
+  await app.register(ListarUsuariosPorPerfil);
 
-app.register(CreateFormula);
-app.register(GetFormulas);
-app.register(DeleteFormula);
+  //Fornecedores 
+  await app.register(CreateFornecedor);
+  await app.register(GetAllFornecedores);
+  await app.register(GetFornecedorById);
+  await app.register(UpdateFornecedor);
+  await app.register(DeleteFornecedor);
 
-// Caixa
-app.register(caixaRoutes);
+  // Configurações
+  await app.register(ConfiguracoesRoutes);
 
-// Email
-app.register(SmsRoutes);
+  // Producao
+  await app.register(CreateProducao);
+  await app.register(GetProducoes);
 
+  // Matérias-Primas
+  await app.register(CreateMateriaPrima);
+  await app.register(GetMateriasPrimas);
+  await app.register(UpdateMateriaPrima);
+  await app.register(DeleteMateriaPrima);
 
-app.listen({ port, host: "0.0.0.0" }).then(() => console.log(`Servidor rodando na porta : ${port}`))
+  // Fórmulas
+  await app.register(CreateFormula);
+  await app.register(GetFormulas);
+  await app.register(DeleteFormula);
+
+  // Caixa
+  await app.register(caixaRoutes);
+
+  // Email
+  await app.register(SmsRoutes);
+
+  await app.listen({ port, host: "0.0.0.0" });
+  console.log(`Servidor rodando na porta : ${port}`);
+}
+
+start().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

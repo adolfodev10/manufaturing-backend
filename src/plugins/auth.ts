@@ -2,7 +2,6 @@ import { FastifyInstance } from "fastify";
 import { verifyToken } from "../modules/services/jwt/verifyToken";
 import { prisma } from "../lib/prismaclient";
 
-// Rotas que NÃO precisam de token
 const PUBLIC_ROUTES = [
   "/auth/login",
   "/auth/validateToken",
@@ -11,13 +10,14 @@ const PUBLIC_ROUTES = [
 ];
 
 export const authPlugin = async (app: FastifyInstance) => {
-  app.addHook("onRequest", async (request, reply) => {
-    const url = request.url.split("?")[0];   // ✅ ignora querystring
+  console.log("🔐 authPlugin registado");
 
-    // ✅ Health check do Render (comparação EXACTA)
+  // ✅ Usa 'preValidation' em vez de 'onRequest' — corre depois do routing
+  // e garante que é aplicado a TODAS as rotas registadas no mesmo contexto
+  app.addHook("preValidation", async (request, reply) => {
+    const url = request.url.split("?")[0];
+
     if (url === "/") return;
-
-    // ✅ Rotas públicas (startsWith é seguro porque não há "/" na lista)
     if (PUBLIC_ROUTES.some((r) => url.startsWith(r))) return;
 
     const authHeader = request.headers.authorization;
@@ -35,7 +35,6 @@ export const authPlugin = async (app: FastifyInstance) => {
       return reply.status(401).send({ error: "Token inválido ou expirado" });
     }
 
-    // ✅ Aceita id ou id_user (compatibilidade)
     const userId = decoded.id_user || decoded.id;
     if (!userId) {
       return reply.status(401).send({ error: "Token inválido: sem id" });
@@ -55,7 +54,6 @@ export const authPlugin = async (app: FastifyInstance) => {
       return reply.status(401).send({ error: "Utilizador não encontrado" });
     }
 
-    // ✅ Popula request.user para TODAS as rotas protegidas
     (request as any).user = {
       id: user.id_user,
       id_user: user.id_user,
