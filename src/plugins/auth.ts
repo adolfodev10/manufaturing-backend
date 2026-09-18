@@ -14,7 +14,7 @@ export const authPlugin = async (app: FastifyInstance) => {
 
   // ✅ Usa 'preValidation' em vez de 'onRequest' — corre depois do routing
   // e garante que é aplicado a TODAS as rotas registadas no mesmo contexto
-  app.addHook("preValidation", async (request, reply) => {
+  app.addHook("onRequest", async (request, reply) => {
     const url = request.url.split("?")[0];
 
     if (url === "/") return;
