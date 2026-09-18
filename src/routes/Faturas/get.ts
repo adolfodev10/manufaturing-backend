@@ -23,12 +23,18 @@ export const GetAllFaturas = async (app: FastifyInstance) => {
       const { page, limit, status, operador, search } = request.query;
       const ip = request.ip || request.socket.remoteAddress || "unknown";
       const user = (request as any).user?.email || "sistema";
+      const userRole = ((request as any).user?.role || "").toUpperCase();
       const userId = (request as any).user?.id;
 
       try {
+
         const skip = (page - 1) * limit;
 
         const where: any = {};
+
+        if(userRole === "OPERADOR") {
+          where.operadorId = userId;
+        }
 
         if (status) {
           where.status = status;
