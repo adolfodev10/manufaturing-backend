@@ -23,7 +23,6 @@ export const GetProximoNumero = async (app: FastifyInstance) => {
         const mesFormatado = mes.toString().padStart(2, "0");
         const prefixo = `FR 000AB.${ano}/${mesFormatado}`;
 
-        // Buscar a última fatura do mês/ano
         const ultimaFatura = await prisma.faturas.findFirst({
           where: {
             numero: { startsWith: prefixo },
@@ -32,7 +31,6 @@ export const GetProximoNumero = async (app: FastifyInstance) => {
           select: { numero: true },
         });
 
-        // Extrair o número sequencial (últimos 5 dígitos)
         let proximo = 1;
         if (ultimaFatura) {
           const match = ultimaFatura.numero.match(/(\d{5})$/);

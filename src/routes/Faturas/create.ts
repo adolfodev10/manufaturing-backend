@@ -18,7 +18,8 @@ const faturaItemSchema = z.object({
 });
 
 const createFaturaSchema = z.object({
-  numero: z.string(),
+  // ⚠️ numero agora é OPCIONAL — o backend gera
+  numero: z.string().optional(),
   dataEmissao: z.string(),
   dataVencimento: z.string().optional(),
   cliente: z.object({
@@ -52,14 +53,37 @@ const createFaturaSchema = z.object({
   statusAGT: z.string().optional().default("PENDENTE"),
 });
 
+/**
+ * Gera o próximo número de fatura de forma segura para o mês/ano dado.
+ * Usa transacção SERIALIZABLE para evitar race conditions.
+ */
+async function gerarNumeroFatura(
+  tx: any,
+  ano: number,
+  mes: number
+): Promise<string> {
+  const mesFormatado = String(mes).padStart(2, "0");
+  const prefixo = `FR 000AB.${ano}/${mesFormatado}`;
+
+  const ultima = await tx.faturas.findFirst({
+    where: { numero: { startsWith: prefixo } },
+    orderBy: { numero: "desc" },
+    select: { numero: true },
+  });
+
+  let proximo = 1;
+  if (ultima) {
+    const match = ultima.numero.match(/(\d{5})$/);
+    if (match) proximo = parseInt(match[1], 10) + 1;
+  }
+
+  return `${prefixo}${String(proximo).padStart(5, "0")}`;
+}
+
 export const CreateFatura = async (app: FastifyInstance) => {
   app.withTypeProvider<ZodTypeProvider>().post(
     "/fatura/create",
-    {
-      schema: {
-        body: createFaturaSchema,
-      },
-    },
+    { schema: { body: createFaturaSchema } },
     async (req, res) => {
       const startTime = Date.now();
       const ip = req.ip || req.socket.remoteAddress || "unknown";
@@ -68,7 +92,6 @@ export const CreateFatura = async (app: FastifyInstance) => {
 
       try {
         const {
-          numero,
           dataEmissao,
           dataVencimento,
           cliente,
@@ -84,6 +107,7 @@ export const CreateFatura = async (app: FastifyInstance) => {
           statusAGT,
         } = req.body;
 
+        // 1) operadorId obrigatório
         if (!operadorId) {
           return res.status(400).send({
             success: false,
@@ -91,11 +115,9 @@ export const CreateFatura = async (app: FastifyInstance) => {
           });
         }
 
+        // 2) caixa aberto
         const caixaAberto = await prisma.caixa.findFirst({
-          where: {
-            operador_id: operadorId,
-            status: "ABERTA",
-          },
+          where: { operador_id: operadorId, status: "ABERTA" },
         });
 
         if (!caixaAberto) {
@@ -105,65 +127,62 @@ export const CreateFatura = async (app: FastifyInstance) => {
           });
         }
 
-        const existente = await prisma.faturas.findUnique({
-          where: { numero },
-        });
+        // 3) Geração do número + criação da fatura numa única transacção.
+        //    Se a criação falhar, o número NÃO é queimado.
+        const fatura = await prisma.$transaction(async (tx) => {
+          const emissao = new Date(dataEmissao);
+          const numero = await gerarNumeroFatura(
+            tx,
+            emissao.getFullYear(),
+            emissao.getMonth() + 1
+          );
 
-        if (existente) {
-          return res.status(409).send({
-            success: false,
-            message: "Já existe uma fatura com este número",
-          });
-        }
-
-        const fatura = await prisma.faturas.create({
-          data: {
-            id_fatura: randomUUID() ?? "fatura-" + Date.now(),
-            numero,
-            dataEmissao: new Date(dataEmissao),
-            dataVencimento: dataVencimento ? new Date(dataVencimento) : null,
-            clienteNome: cliente.nome,
-            clienteNIF: cliente.nif,
-            clienteEndereco: cliente.endereco,
-            clienteTelefone: cliente.telefone,
-            clienteEmail: cliente.email,
-            clienteCodigo: cliente.codigoCliente,
-            empresaNome: empresa.nome,
-            empresaNIF: empresa.nif,
-            empresaEndereco: empresa.endereco,
-            empresaTelefone: empresa.telefone,
-            empresaEmail: empresa.email,
-            subtotal: totais.semImpostos,
-            impostos: totais.impostos,
-            descontos: totais.descontos || 0,
-            totalPagar: totais.totalPagar,
-            operador,
-            operadorId,
-            formaPagamento,
-            observacoes,
-            status: "EMITIDA",
-            statusAGT: statusAGT || "PENDENTE",
-            hashFiscal,
-            qrCodeData,
-            caixaId: caixaAberto.id,
-
-            itens: {
-              create: itens.map((item) => ({
-                id: randomUUID() ?? "item-" + Date.now(),
-                codigo: item.codigo || "-",
-                descricao: item.descricao,
-                quantidade: item.quantidade,
-                precoUnitario: item.precoUnitario,
-                desconto: item.desconto || 0,
-                impostos: item.imposto,
-                total: item.total,
-                taxaIVA: item.taxaIVA || 14,
-              })),
+          return tx.faturas.create({
+            data: {
+              id_fatura: randomUUID(),
+              numero,
+              dataEmissao: emissao,
+              dataVencimento: dataVencimento ? new Date(dataVencimento) : null,
+              clienteNome: cliente.nome,
+              clienteNIF: cliente.nif,
+              clienteEndereco: cliente.endereco,
+              clienteTelefone: cliente.telefone,
+              clienteEmail: cliente.email,
+              clienteCodigo: cliente.codigoCliente,
+              empresaNome: empresa.nome,
+              empresaNIF: empresa.nif,
+              empresaEndereco: empresa.endereco,
+              empresaTelefone: empresa.telefone,
+              empresaEmail: empresa.email,
+              subtotal: totais.semImpostos,
+              impostos: totais.impostos,
+              descontos: totais.descontos || 0,
+              totalPagar: totais.totalPagar,
+              operador,
+              operadorId,
+              formaPagamento,
+              observacoes,
+              status: "EMITIDA",
+              statusAGT: statusAGT || "PENDENTE",
+              hashFiscal,
+              qrCodeData,
+              caixaId: caixaAberto.id,
+              itens: {
+                create: itens.map((item) => ({
+                  id: randomUUID(),
+                  codigo: item.codigo || "-",
+                  descricao: item.descricao,
+                  quantidade: item.quantidade,
+                  precoUnitario: item.precoUnitario,
+                  desconto: item.desconto || 0,
+                  impostos: item.imposto,
+                  total: item.total,
+                  taxaIVA: item.taxaIVA || 14,
+                })),
+              },
             },
-          },
-          include: {
-            itens: true,
-          },
+            include: { itens: true },
+          });
         });
 
         const duration = Date.now() - startTime;
@@ -172,18 +191,18 @@ export const CreateFatura = async (app: FastifyInstance) => {
           action: "Criar Fatura",
           user,
           user_id: userId,
-          details: `Fatura criada: ${numero} - Total: ${totais.totalPagar} AOA`,
+          details: `Fatura criada: ${fatura.numero} - Total: ${totais.totalPagar} AOA`,
           ip,
           resource: "faturas",
           resource_id: fatura.id_fatura,
-          new_value: JSON.stringify({ numero, totalPagar: totais.totalPagar }),
+          new_value: JSON.stringify({
+            numero: fatura.numero,
+            totalPagar: totais.totalPagar,
+          }),
           duration,
         });
 
-        return res.status(201).send({
-          success: true,
-          data: fatura,
-        });
+        return res.status(201).send({ success: true, data: fatura });
       } catch (error) {
         const duration = Date.now() - startTime;
 
@@ -191,7 +210,9 @@ export const CreateFatura = async (app: FastifyInstance) => {
           action: "Criar Fatura",
           user,
           user_id: userId,
-          details: `Erro ao criar fatura: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
+          details: `Erro ao criar fatura: ${
+            error instanceof Error ? error.message : "Erro desconhecido"
+          }`,
           ip,
           resource: "faturas",
           duration,
