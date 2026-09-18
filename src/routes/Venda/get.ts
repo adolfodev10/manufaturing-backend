@@ -10,7 +10,7 @@ export const GetAllVenda = async (app: FastifyInstance) => {
             querystring: z.object({
                 page: z.coerce.number().int().min(1).optional().default(1),
                 limit: z.coerce.number().int().min(1).max(100).optional().default(10),
-                
+
             })
         }
     },
@@ -27,17 +27,15 @@ export const GetAllVenda = async (app: FastifyInstance) => {
 
                 const where: any = {};
 
-                if(userRole === "OPERADOR") {
+                if (userRole === "OPERADOR") {
                     where.user_id = userId;
                 }
 
-                if (status) {
-                    where.status = status;
-                }
+                if (status) where.status = status;
 
-                if (tipo) {
-                    where.tipo = tipo;
-                }
+
+                if (tipo) where.tipo = tipo;
+            
 
                 const [vendas, total] = await Promise.all([
                     prisma.venda.findMany({
@@ -46,7 +44,14 @@ export const GetAllVenda = async (app: FastifyInstance) => {
                         take: limit,
                         orderBy: { name_product: "asc" },
                         include: {
-                            user: true
+                            user: {
+                                select: {
+                                    id_user: true,
+                                    name: true,
+                                    email: true,
+                                    role: true,
+                                }
+                            }
                         }
                     }),
                     prisma.venda.count({ where })
