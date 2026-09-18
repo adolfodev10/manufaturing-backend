@@ -131,6 +131,7 @@ app.register(multipart, {
 });
 
 await app.register(socketPlugin);
+await app.register(authPlugin);
 
 //Root Route
 await app.register(RootRoute);
@@ -142,7 +143,6 @@ await app.register(ValidationToken);
 await app.register(ForgotPassword);
 await app.register(ResetPassword);
 
-await app.register(authPlugin);
 
   //User
   await app.register(CreateUser);

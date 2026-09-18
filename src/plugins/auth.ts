@@ -1,3 +1,4 @@
+import fp from "fastify-plugin";
 import { FastifyInstance } from "fastify";
 import { verifyToken } from "../modules/services/jwt/verifyToken";
 import { prisma } from "../lib/prismaclient";
@@ -9,7 +10,7 @@ const PUBLIC_ROUTES = [
   "/auth/reset-password",
 ];
 
-export const authPlugin = async (app: FastifyInstance) => {
+export const authPlugin = fp(async (app: FastifyInstance) => {
   console.log("🔐 authPlugin registado");
 
   // ✅ Usa 'preValidation' em vez de 'onRequest' — corre depois do routing
@@ -62,4 +63,4 @@ export const authPlugin = async (app: FastifyInstance) => {
       role: user.role,
     };
   });
-};
+});
