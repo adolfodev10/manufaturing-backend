@@ -11,7 +11,6 @@ const PUBLIC_ROUTES = [
 ];
 
 export const authPlugin = fp(async (app: FastifyInstance) => {
-  console.log("🔐 authPlugin registado");
 
   // ✅ Usa 'preValidation' em vez de 'onRequest' — corre depois do routing
   // e garante que é aplicado a TODAS as rotas registadas no mesmo contexto
