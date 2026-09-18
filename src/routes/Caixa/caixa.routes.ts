@@ -20,9 +20,9 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     async (req, reply) => {
       try {
         const caixa = await abrirCaixa(req.body);
-        return reply.status(201).send(caixa);
+        return reply.status(201).send({ success: true, data: caixa });
       } catch (err: any) {
-        return reply.status(400).send({ error: err.message });
+        return reply.status(400).send({ success: false, error: err.message });
       }
     }
   );
@@ -35,7 +35,7 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     },
     async (req, reply) => {
       const caixa = await getCaixaAberto(req.params.operadorId);
-      return reply.status(200).send(caixa); // null se não houver
+      return reply.status(200).send({ success: true, data: caixa }); // null se não houver
     }
   );
 
@@ -46,9 +46,9 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     async (req, reply) => {
       try {
         const resumo = await calcularResumoCaixa(req.params.id);
-        return reply.status(200).send(resumo);
+        return reply.status(200).send({ success: true, data: resumo });
       } catch (err: any) {
-        return reply.status(404).send({ error: err.message });
+        return reply.status(404).send({ success: false, error: err.message });
       }
     }
   );
@@ -60,9 +60,9 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     async (req, reply) => {
       try {
         const caixa = await fecharCaixa(req.body);
-        return reply.status(200).send(caixa);
+        return reply.status(200).send({ success: true, data: caixa });
       } catch (err: any) {
-        return reply.status(400).send({ error: err.message });
+        return reply.status(400).send({ success: false, error: err.message });
       }
     }
   );
@@ -73,7 +73,7 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     { schema: { querystring: listarCaixaQuerySchema } },
     async (req, reply) => {
       const caixas = await listarCaixas(req.query);
-      return reply.status(200).send({ caixas });
+      return reply.status(200).send({ success: true, data: caixas });
     }
   );
 };
