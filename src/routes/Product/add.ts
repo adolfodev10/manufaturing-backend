@@ -17,11 +17,15 @@ export const AddProductInStock = async (app: FastifyInstance) => {
             const ip = req.ip || req.socket.remoteAddress || "unknown";
             const user = (req as any).user?.email || "sistema";
             const userId = (req as any).user?.id;
-
             try {
+                const nomeLimpo = (name_product ?? "").trim();
+                
                 const existingProduct = await prisma.products.findFirst({
                     where: { 
-                        name_product,
+                        name_product: {
+                            equals: nomeLimpo,
+                            mode: "insensitive"
+                        },
                         estado: { not: "VENDIDO" }
                     }
                 });
@@ -47,7 +51,7 @@ export const AddProductInStock = async (app: FastifyInstance) => {
 
                 const addProduct = await prisma.products.create({
                     data: {
-                        name_product: name_product ?? "",
+                        name_product: nomeLimpo,
                         category: category ?? "Sem categoria",
                         date_validate: date_validate ?? "",
                         price,
