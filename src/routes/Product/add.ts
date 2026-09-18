@@ -13,7 +13,7 @@ export const AddProductInStock = async (app: FastifyInstance) => {
     },
         async (req, reply) => {
             const startTime = Date.now();
-            const { name_product, price, quantity, date_validate, category, user_id } = req.body;
+            const { name_product, price, preco_compra, quantity, date_validate, category, user_id } = req.body;
             const ip = req.ip || req.socket.remoteAddress || "unknown";
             const user = (req as any).user?.email || "sistema";
             const userId = (req as any).user?.id;
@@ -55,6 +55,7 @@ export const AddProductInStock = async (app: FastifyInstance) => {
                         category: category ?? "Sem categoria",
                         date_validate: date_validate ?? "",
                         price,
+                        preco_compra:preco_compra,
                         quantity,
                         updated_at: new Date(),
                         created_at: new Date(),

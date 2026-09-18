@@ -5,6 +5,7 @@ export const addProductSchema = z.object({
     price: z.string(),
     category: z.string().optional(),
     user_id: z.string().optional(),
+    preco_compra:z.string().optional(),
     date_validate: z.string().optional(),
     quantity: z.string().min(1)
 })

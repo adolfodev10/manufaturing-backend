@@ -202,6 +202,7 @@ model estoque {
   updated_at    DateTime
   date_validate String
   price         String
+  preco_compra  String?
   quantity      String
   estado        estoque_estado @default(NAO_VENDIDO)
   category      String?
@@ -312,17 +313,19 @@ model products {
   updated_at    DateTime
   date_validate String
   price         String
+  preco_compra  String?
   quantity      String
   methodPayment products_methodPayment @default(CACHE)
   totalLucro    String?
   estado        products_estado        @default(NAO_VENDIDO)
-  dividas       dividas[]
-  Producoes     Producoes[]
-  Formulas      Formulas[]
 
   category    String?
   categoriaId String?    @map("categoria_id")
   categoria   Categoria? @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+
+  dividas   dividas[]
+  Producoes Producoes[]
+  Formulas  Formulas[]
 
   @@index([categoriaId])
 }
