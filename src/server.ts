@@ -129,12 +129,13 @@ app.register(multipart, {
 });
 
 
+//Root Route
+app.register(RootRoute);
+
 app.register(socketPlugin);
 app.register(authPlugin);
 
-//Root Route
 
-app.register(RootRoute);
 
 //User
 app.register(CreateUser);

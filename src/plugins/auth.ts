@@ -12,10 +12,13 @@ const PUBLIC_ROUTES = [
 
 export const authPlugin = async (app: FastifyInstance) => {
   app.addHook("onRequest", async (request, reply) => {
-    // Deixa passar rotas públicas
-    if (PUBLIC_ROUTES.some((r) => request.url.startsWith(r))) {
-      return;
-    }
+    const url = request.url.split("?")[0];   // ✅ ignora querystring
+
+    // ✅ Health check do Render (comparação EXACTA)
+    if (url === "/") return;
+
+    // ✅ Rotas públicas (startsWith é seguro porque não há "/" na lista)
+    if (PUBLIC_ROUTES.some((r) => url.startsWith(r))) return;
 
     const authHeader = request.headers.authorization;
     if (!authHeader) {
@@ -28,13 +31,18 @@ export const authPlugin = async (app: FastifyInstance) => {
     }
 
     const decoded: any = await verifyToken(token);
-    if (!decoded || typeof decoded !== "object" || !decoded.id_user) {
+    if (!decoded || typeof decoded !== "object") {
       return reply.status(401).send({ error: "Token inválido ou expirado" });
     }
 
-    // Buscar o user para ter sempre o role actualizado
+    // ✅ Aceita id ou id_user (compatibilidade)
+    const userId = decoded.id_user || decoded.id;
+    if (!userId) {
+      return reply.status(401).send({ error: "Token inválido: sem id" });
+    }
+
     const user = await prisma.users.findUnique({
-      where: { id_user: decoded.id_user },
+      where: { id_user: userId },
       select: {
         id_user: true,
         name: true,
@@ -47,7 +55,7 @@ export const authPlugin = async (app: FastifyInstance) => {
       return reply.status(401).send({ error: "Utilizador não encontrado" });
     }
 
-    // ✅ AGORA `request.user` existe em TODAS as rotas protegidas
+    // ✅ Popula request.user para TODAS as rotas protegidas
     (request as any).user = {
       id: user.id_user,
       id_user: user.id_user,
