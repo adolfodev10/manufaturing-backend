@@ -41,20 +41,34 @@ model Notification {
   read       Boolean  @default(false)
 }
 
+model Categoria {
+  id         String   @id @default(uuid())
+  nome       String   @unique
+  descricao  String?
+  ativo      Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  produtos products[]
+  estoque  estoque[]
+
+  @@map("categorias")
+}
+
 model Caixa {
-  id      String  @id @default(uuid())
-  operador String
-  operador_id String  @map("operador_id")
-  status CaixaStatus @default(ABERTA)
-  valorInicial Float? @default(0)
-  valorFinal Float? 
-  totalVendas Float @default(0)
-  totalDinheiro Float @default(0)
-  totalTPA Float @default(0)
-  totalFaturas Int @default(0)
-  data_abertura DateTime @default(now())
+  id             String      @id @default(uuid())
+  operador       String
+  operador_id    String      @map("operador_id")
+  status         CaixaStatus @default(ABERTA)
+  valorInicial   Float?      @default(0)
+  valorFinal     Float?
+  totalVendas    Float       @default(0)
+  totalDinheiro  Float       @default(0)
+  totalTPA       Float       @default(0)
+  totalFaturas   Int         @default(0)
+  data_abertura  DateTime    @default(now())
   data_fechadura DateTime?
-  observacoes String? @db.Text
+  observacoes    String?     @db.Text
 
   faturas faturas[]
 
@@ -191,6 +205,10 @@ model estoque {
   quantity      String
   estado        estoque_estado @default(NAO_VENDIDO)
   category      String?
+  categoriaId   String?        @map("categoria_id")
+  categoria     Categoria?     @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+
+  @@index([categoriaId])
 }
 
 model system_config {
@@ -245,8 +263,8 @@ model faturas {
   operador   String
   operadorId String?
 
-  formaPagamento String?  @default("CACHE")
-  observacoes     String?  @db.Text
+  formaPagamento String? @default("CACHE")
+  observacoes    String? @db.Text
 
   status    String  @default("EMITIDA")
   statusAGT String? @default("PENDENTE")
@@ -255,8 +273,8 @@ model faturas {
   qrCodeData      String? @db.Text
   codigoValidacao String?
 
-  caixaId String?   @map("caixa_id")
-  caixa   Caixa? @relation(fields: [caixaId], references: [id], onDelete: SetNull)
+  caixaId String? @map("caixa_id")
+  caixa   Caixa?  @relation(fields: [caixaId], references: [id], onDelete: SetNull)
 
   itens faturaItem[]
 
@@ -298,10 +316,15 @@ model products {
   methodPayment products_methodPayment @default(CACHE)
   totalLucro    String?
   estado        products_estado        @default(NAO_VENDIDO)
-  category      String?
   dividas       dividas[]
   Producoes     Producoes[]
   Formulas      Formulas[]
+
+  category    String?
+  categoriaId String?    @map("categoria_id")
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+
+  @@index([categoriaId])
 }
 
 model fornecedores {
@@ -472,10 +495,11 @@ enum venda_methodPayment {
   CACHE
   TPA
 }
- enum CaixaStatus {
+
+enum CaixaStatus {
   ABERTA
   FECHADA
- }
+}
 
 enum venda_estado {
   VENDIDO
