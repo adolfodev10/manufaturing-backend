@@ -91,6 +91,7 @@ import { GetCategorias } from "./routes/Categorias/get";
 import { UpdateCategoria } from "./routes/Categorias/update";
 import { DeleteCategoria } from "./routes/Categorias/delete";
 import { GetInventario } from "./routes/Inventario/get";
+import { InventarioRoutes } from "./routes/Inventario";
 
 
 const app = fastify;
@@ -271,6 +272,8 @@ async function start() {
   await app.register(UpdateCategoria);
   await app.register(DeleteCategoria);
 
+  // Inventário
+  await app.register(InventarioRoutes);
   await app.register(GetInventario);
 
   // Email
