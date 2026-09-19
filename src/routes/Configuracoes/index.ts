@@ -374,8 +374,7 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
         }
 
         const fromName = smtp.email_from_name || "EKO";
-        // Enquanto não verificar um domínio no Resend, use onboarding@resend.dev
-        const fromEmail = smtp.email_from || "adolfomonteiromanuel@gmail.com";
+        const fromEmail = smtp.email_from || "noreply@eko-manufacturing.com";
 
         const response = await fetch("https://api.resend.com/emails", {
           method: "POST",
