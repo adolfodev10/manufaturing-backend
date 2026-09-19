@@ -326,6 +326,7 @@ model products {
   dividas   dividas[]
   Producoes Producoes[]
   Formulas  Formulas[]
+  movimentos movimentos_estoque[]
 
   @@index([categoriaId])
 }
@@ -480,6 +481,83 @@ model FormulaItens {
   materia_prima MateriasPrimas @relation(fields: [materia_prima_id], references: [id], onDelete: Cascade)
 
   @@map("formula_itens")
+}
+
+model movimentos_estoque {
+  id                String          @id @default(uuid())
+  produto_id        String
+  tipo              tipo_movimento
+  quantidade        Int
+  quantidade_antes  Int
+  quantidade_depois Int
+  motivo            String?
+  referencia_id     String?
+  referencia_tipo   String?
+  usuario_id        String
+  created_at        DateTime        @default(now())
+
+  produto           products        @relation(fields: [produto_id], references: [id_product], onDelete: Cascade)
+
+  @@index([produto_id, created_at])
+  @@index([tipo, created_at])
+  @@map("movimentos_estoque")
+}
+
+model inventarios {
+  id                String            @id @default(uuid())
+  numero            String            @unique
+  data_inicio       DateTime          @default(now())
+  data_fim          DateTime?
+  status            status_inventario @default(ABERTO)
+  responsavel_id    String
+  responsavel_nome  String
+  observacoes       String?           @db.Text
+  total_itens       Int               @default(0)
+  itens_corretos    Int               @default(0)
+  itens_divergentes Int               @default(0)
+  valor_divergencia Decimal           @db.Decimal(15, 2) @default(0)
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+
+  itens             inventario_itens[]
+
+  @@map("inventarios")
+}
+
+model inventario_itens {
+  id                 String   @id @default(uuid())
+  inventario_id      String
+  produto_id         String
+  produto_nome       String
+  produto_categoria  String?
+  quantidade_sistema Int
+  quantidade_contada Int
+  divergencia        Int
+  valor_divergencia  Decimal  @db.Decimal(15, 2)
+  observacao         String?
+  created_at         DateTime @default(now())
+
+  inventario         inventarios @relation(fields: [inventario_id], references: [id], onDelete: Cascade)
+
+  @@unique([inventario_id, produto_id])
+  @@map("inventario_itens")
+}
+
+enum tipo_movimento {
+  ENTRADA_COMPRA
+  ENTRADA_AJUSTE
+  ENTRADA_DEVOLUCAO
+  SAIDA_VENDA
+  SAIDA_QUEBRA
+  SAIDA_VENCIMENTO
+  SAIDA_AJUSTE
+}
+
+enum status_inventario {
+  ABERTO
+  EM_CONTAGEM
+  FINALIZADO
+  CANCELADO
 }
 
 enum Role {
