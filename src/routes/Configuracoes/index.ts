@@ -306,9 +306,9 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
     }
   );
 
-    /* ============================================================
-     POST /configuracoes/gerar-rsa — gera par RSA real
-     ============================================================ */
+  /* ============================================================
+   POST /configuracoes/gerar-rsa — gera par RSA real
+   ============================================================ */
   app.withTypeProvider<ZodTypeProvider>().post(
     "/configuracoes/gerar-rsa",
     async (_request, reply) => {
@@ -364,10 +364,10 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
           });
         }
 
-        if (!smtp?.email_smtp_host || !smtp?.email_smtp_user) {
+        if (!smtp?.email_smtp_host || !smtp?.email_smtp_user || !smtp?.email_smtp_pass) {
           return reply.status(400).send({
             success: false,
-            message: "Configurações SMTP incompletas",
+            message: "Configurações SMTP incompletas (host, user ou pass em falta)",
           });
         }
 
@@ -381,17 +381,24 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
             user: smtp.email_smtp_user,
             pass: smtp.email_smtp_pass,
           },
-        });
+          // ✅ Força IPv4
+          family: 4,
+          connectionTimeout: 15000,
+          greetingTimeout: 15000,
+          socketTimeout: 20000,
+        } as any);
+
+        await transporter.verify();
 
         await transporter.sendMail({
           from: `"${smtp.email_from_name || "EKO"}" <${smtp.email_from || smtp.email_smtp_user}>`,
           to: email,
           subject: "Teste de Configuração - EKO",
           html: `
-            <h2>Teste de Email</h2>
-            <p>Este é um email de teste enviado pelo sistema EKO.</p>
-            <p>Se recebeu esta mensagem, as configurações SMTP estão correctas.</p>
-          `,
+          <h2>Teste de Email</h2>
+          <p>Este é um email de teste enviado pelo sistema EKO.</p>
+          <p>Se recebeu esta mensagem, as configurações SMTP estão corretas.</p>
+        `,
         });
 
         return reply.send({
@@ -399,10 +406,11 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
           message: "Email enviado com sucesso",
         });
       } catch (error: any) {
-        console.error("[configuracoes] testar-email error:", error);
+        console.error("[testar-email] ERRO:", error);
         return reply.status(500).send({
           success: false,
           message: error?.message || "Erro ao enviar email de teste",
+          code: error?.code,
         });
       }
     }
