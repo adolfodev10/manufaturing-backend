@@ -74,8 +74,8 @@ export const InventarioRoutes = async (app: FastifyInstance) => {
         body: z.object({
           responsavel_id: z.string(),
           responsavel_nome: z.string(),
-          observacoes: z.string().optional(),
-          categoria: z.string().optional(),
+          observacoes: z.string().nullish(),
+          categoria: z.string().nullish(),
         }),
       },
     },
@@ -146,7 +146,7 @@ export const InventarioRoutes = async (app: FastifyInstance) => {
         params: z.object({ id: z.string() }),
         body: z.object({
           quantidade_contada: z.number().int().min(0),
-          observacao: z.string().optional(),
+          observacao: z.string().nullish(),
         }),
       },
     },
@@ -194,7 +194,7 @@ export const InventarioRoutes = async (app: FastifyInstance) => {
         params: z.object({ id: z.string() }),
         body: z.object({
           usuario_id: z.string(),
-          observacoes: z.string().optional(),
+          observacoes: z.string().nullish(),
         }),
       },
     },
