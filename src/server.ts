@@ -1,5 +1,5 @@
+import dns from "node:dns";
 import { fastify } from "./lib/fastify";
-
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 
 import fastifyCors from "@fastify/cors";
@@ -98,6 +98,7 @@ const app = fastify;
 const port = Number(process.env.PORT) || 3300;
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler);
+dns.setDefaultResultOrder("ipv4first");
 
 
 async function start() {
