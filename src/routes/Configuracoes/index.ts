@@ -381,7 +381,6 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
             user: smtp.email_smtp_user,
             pass: smtp.email_smtp_pass,
           },
-          // ✅ Força IPv4
           family: 4,
           connectionTimeout: 15000,
           greetingTimeout: 15000,
