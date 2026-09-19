@@ -30,7 +30,7 @@
     "firebase-admin": "^13.4.0",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^4.2.1",
-    "nodemailer": "^8.0.9",
+    "nodemailer": "^8.0.11",
     "onesignal-node": "^3.4.0",
     "resend": "^6.12.4",
     "socket.io": "^4.8.1",
