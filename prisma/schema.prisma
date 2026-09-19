@@ -220,6 +220,19 @@ model system_config {
 
   @@map("system_config")
 }
+model configuracoes {
+  id    String  @id  @default(uuid())
+  chave String    @unique
+  valor   Json
+  categoria   String
+  descricao  String?
+  atualizado_por String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@index([categoria])
+  @@map("configuracoes")
+}
 
 model dividas {
   id_divida  String           @id
