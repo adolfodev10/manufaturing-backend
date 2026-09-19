@@ -364,42 +364,47 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
           });
         }
 
-        if (!smtp?.email_smtp_host || !smtp?.email_smtp_user || !smtp?.email_smtp_pass) {
-          return reply.status(400).send({
+
+        const apiKey = process.env.RESEND_API_KEY;
+        if (!apiKey) {
+          return reply.status(500).send({
             success: false,
-            message: "Configurações SMTP incompletas (host, user ou pass em falta)",
+            message: "RESEND_API_KEY não configurada no servidor",
           });
         }
 
-        const nodemailer = await import("nodemailer");
+        const fromName = smtp.email_from_name || "EKO";
+        // Enquanto não verificar um domínio no Resend, use onboarding@resend.dev
+        const fromEmail = smtp.email_from || "adolfomonteiromanuel@gmail.com";
 
-        const transporter = nodemailer.createTransport({
-          host: smtp.email_smtp_host,
-          port: Number(smtp.email_smtp_port) || 587,
-          secure: Boolean(smtp.email_smtp_secure),
-          auth: {
-            user: smtp.email_smtp_user,
-            pass: smtp.email_smtp_pass,
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
           },
-          requireTLS: true,
-          family: 4,
-          connectionTimeout: 15000,
-          greetingTimeout: 15000,
-          socketTimeout: 20000,
-        } as any);
-
-        await transporter.verify();
-
-        await transporter.sendMail({
-          from: `"${smtp.email_from_name || "EKO"}" <${smtp.email_from || smtp.email_smtp_user}>`,
-          to: email,
-          subject: "Teste de Configuração - EKO",
-          html: `
-          <h2>Teste de Email</h2>
-          <p>Este é um email de teste enviado pelo sistema EKO.</p>
-          <p>Se recebeu esta mensagem, as configurações SMTP estão corretas.</p>
-        `,
+          body: JSON.stringify({
+            from: `${fromName} <${fromEmail}>`,
+            to: [email],
+            subject: "Teste de Configuração - EKO",
+            html: `
+            <h2>Teste de Email</h2>
+            <p>Este é um email de teste enviado pelo sistema EKO.</p>
+            <p>Se recebeu esta mensagem, as configurações estão corretas.</p>
+          `,
+          }),
         });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("[testar-email] Resend error:", data);
+          return reply.status(500).send({
+            success: false,
+            message: (data as any)?.message || "Erro ao enviar email via Resend",
+            code: (data as any)?.name,
+          });
+        }
 
         return reply.send({
           success: true,
