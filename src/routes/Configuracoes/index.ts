@@ -306,6 +306,175 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
     }
   );
 
+    /* ============================================================
+     POST /configuracoes/gerar-rsa — gera par RSA real
+     ============================================================ */
+  app.withTypeProvider<ZodTypeProvider>().post(
+    "/configuracoes/gerar-rsa",
+    async (_request, reply) => {
+      try {
+        const crypto = await import("crypto");
+
+        const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
+          modulusLength: 2048,
+          publicKeyEncoding: { type: "spki", format: "pem" },
+          privateKeyEncoding: { type: "pkcs8", format: "pem" },
+        });
+
+        return reply.send({
+          success: true,
+          data: {
+            publicKey,
+            privateKey,
+          },
+        });
+      } catch (error) {
+        console.error("[configuracoes] gerar-rsa error:", error);
+        return reply.status(500).send({
+          success: false,
+          message: "Erro ao gerar par de chaves RSA",
+        });
+      }
+    }
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().post(
+    "/configuracoes/testar-email",
+    {
+      schema: {
+        body: z.object({
+          email: z.string().email(),
+        }),
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { email } = request.body;
+
+        const registo = await prisma.configuracoes.findUnique({
+          where: { chave: "notificacao" },
+        });
+
+        const smtp = (registo?.valor as any) ?? {};
+
+        if (!smtp?.email_enabled) {
+          return reply.status(400).send({
+            success: false,
+            message: "Email não está habilitado nas configurações",
+          });
+        }
+
+        if (!smtp?.email_smtp_host || !smtp?.email_smtp_user) {
+          return reply.status(400).send({
+            success: false,
+            message: "Configurações SMTP incompletas",
+          });
+        }
+
+        const nodemailer = await import("nodemailer");
+
+        const transporter = nodemailer.createTransport({
+          host: smtp.email_smtp_host,
+          port: Number(smtp.email_smtp_port) || 587,
+          secure: Boolean(smtp.email_smtp_secure),
+          auth: {
+            user: smtp.email_smtp_user,
+            pass: smtp.email_smtp_pass,
+          },
+        });
+
+        await transporter.sendMail({
+          from: `"${smtp.email_from_name || "EKO"}" <${smtp.email_from || smtp.email_smtp_user}>`,
+          to: email,
+          subject: "Teste de Configuração - EKO",
+          html: `
+            <h2>Teste de Email</h2>
+            <p>Este é um email de teste enviado pelo sistema EKO.</p>
+            <p>Se recebeu esta mensagem, as configurações SMTP estão correctas.</p>
+          `,
+        });
+
+        return reply.send({
+          success: true,
+          message: "Email enviado com sucesso",
+        });
+      } catch (error: any) {
+        console.error("[configuracoes] testar-email error:", error);
+        return reply.status(500).send({
+          success: false,
+          message: error?.message || "Erro ao enviar email de teste",
+        });
+      }
+    }
+  );
+
+  app.withTypeProvider<ZodTypeProvider>().post(
+    "/configuracoes/backup",
+    {
+      schema: {
+        body: z.object({
+          includeMedia: z.boolean().optional().default(true),
+          compression: z.boolean().optional().default(true),
+          encryption: z.boolean().optional().default(false),
+          description: z.string().optional(),
+        }),
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { compression, encryption, description } = request.body;
+        const userId = (request as any).user?.id_user || null;
+
+        const { exec } = await import("child_process");
+        const { promisify } = await import("util");
+        const execAsync = promisify(exec);
+
+        const dbUrl = process.env.DATABASE_URL || "";
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const filename = `backup-${timestamp}.sql${compression ? ".gz" : ""}`;
+        const location = `/tmp/${filename}`;
+
+        const dumpCmd = compression
+          ? `pg_dump "${dbUrl}" | gzip > "${location}"`
+          : `pg_dump "${dbUrl}" > "${location}"`;
+
+        await execAsync(dumpCmd);
+
+        const fs = await import("fs");
+        const stats = fs.statSync(location);
+
+        const backup = await prisma.backups.create({
+          data: {
+            name: description || `Backup Manual ${new Date().toLocaleString("pt-PT")}`,
+            filename,
+            size: BigInt(stats.size),
+            type: "MANUAL",
+            status: "COMPLETED",
+            tables: "all",
+            records_count: 0,
+            location,
+            duration: 0,
+            created_by: userId,
+            completed_at: new Date(),
+            error: encryption ? "Criptografia não suportada ainda" : null,
+          },
+        });
+
+        return reply.send({
+          success: true,
+          message: "Backup criado com sucesso",
+          data: backup,
+        });
+      } catch (error: any) {
+        console.error("[configuracoes] backup error:", error);
+        return reply.status(500).send({
+          success: false,
+          message: error?.message || "Erro ao criar backup",
+        });
+      }
+    }
+  );
+
   /* POST /configuracoes/reset */
   app.withTypeProvider<ZodTypeProvider>().post(
     "/configuracoes/reset",
