@@ -136,24 +136,17 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                             // Não vincula à mesma caixa para não confundir o saldo do turno
                             caixaId: null,
 
-                            // Itens com valores negativos
                             itens: {
-                                create: (faturaOriginal.itens ?? []).map((item: any) => {
-                                    const valorItem = item.valor ?? item.total ?? 0;
-
-                                    return {
-                                        // Ajuste esses campos conforme o schema real do faturaItem
-                                        codigo: item.codigo,
-                                        descricao: item.descricao,
-                                        quantidade: item.quantidade,
-                                        precoUnitario: item.precoUnitario,
-                                        desconto: 0,
-                                        valor: -Math.abs(valorItem),
-                                        impostos: -Math.abs(item.impostos ?? 0),
-                                        total: -Math.abs(item.total ?? 0),
-                                        taxaIVA: item.taxaIVA ?? 14,
-                                    };
-                                }),
+                                create: (faturaOriginal.itens ?? []).map((item: any) => ({
+                                    codigo: item.codigo,
+                                    descricao: item.descricao,
+                                    quantidade: item.quantidade,
+                                    precoUnitario: item.precoUnitario,
+                                    desconto: 0,
+                                    impostos: -Math.abs(item.impostos ?? 0),
+                                    total: -Math.abs(item.total ?? 0),
+                                    taxaIVA: item.taxaIVA ?? 14,
+                                })),
                             },
                         },
                         include: { itens: true },
