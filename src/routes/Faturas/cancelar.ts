@@ -22,15 +22,11 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                 }),
             },
         },
+
         async (request, reply) => {
             try {
                 const { faturaId, motivo } = request.body;
                 const user = (request as any).user;
-
-                const userDb = await prisma.users.findUnique({
-                    where: { id_user: user?.id_user },
-                    select: { name: true },
-                });
 
                 // 1. Permissão
                 if (
@@ -42,6 +38,11 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                         error: "Apenas administradores podem cancelar faturas",
                     });
                 }
+                const userDb = user?.id_user ?
+                    await prisma.users.findUnique({
+                        where: { id_user: user?.id_user },
+                        select: { name: true },
+                    }) : null;
 
                 // 2. Buscar fatura original com itens
                 const faturaOriginal = await prisma.faturas.findUnique({
