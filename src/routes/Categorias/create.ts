@@ -26,7 +26,9 @@ export const CreateCategoria = async (app: FastifyInstance) => {
         // ✅ Verifica duplicado case-insensitive
         const existente = await prisma.categoria.findFirst({
           where: {
-            nome: { equals: nome, mode: "insensitive" },
+            nome: { equals: nome, 
+              // mode: "insensitive" 
+            },
           },
         });
 

@@ -22,6 +22,7 @@ export const EditProduct = async (app: FastifyInstance) => {
         const startTime = Date.now();
         const { id_product } = req.params;
         const { name_product, category, price, quantity, date_validate } = req.body;
+        const parsedDateValidate = date_validate ? new Date(date_validate) : null;
         const ip = req.ip || req.socket.remoteAddress || "unknown";
         const user = (req as any).user?.email || "sistema";
         const userId = (req as any).user?.id;
@@ -78,8 +79,14 @@ export const EditProduct = async (app: FastifyInstance) => {
             if (quantity && productExists.quantity !== quantity) {
                 alteracoes.push(`Quantidade: ${productExists.quantity} → ${quantity}`);
             }
-            if (date_validate && productExists.date_validate !== date_validate) {
-                alteracoes.push(`Validade: ${productExists.date_validate} → ${date_validate}`);
+            const hasDateChange = !!date_validate && (
+                (productExists.date_validate === null && parsedDateValidate !== null) ||
+                (productExists.date_validate !== null && parsedDateValidate === null) ||
+                (productExists.date_validate !== null && parsedDateValidate !== null && productExists.date_validate.getTime() !== parsedDateValidate.getTime())
+            );
+
+            if (hasDateChange) {
+                alteracoes.push(`Validade: ${productExists.date_validate ? productExists.date_validate.toISOString().slice(0, 10) : 'Sem validade'} → ${date_validate}`);
             }
 
             const product = await prisma.products.update({
@@ -89,7 +96,7 @@ export const EditProduct = async (app: FastifyInstance) => {
                     category: category || productExists.category,
                     price: price || productExists.price,
                     quantity: quantity || productExists.quantity,
-                    date_validate: date_validate || productExists.date_validate,
+                    date_validate: parsedDateValidate ?? productExists.date_validate,
                     updated_at: new Date(),
                 },
             });
@@ -104,7 +111,7 @@ export const EditProduct = async (app: FastifyInstance) => {
                         category: product.category,
                         price: product.price,
                         quantity: product.quantity,
-                        date_validate: product.date_validate,
+                        date_validate: product.date_validate ? new Date(product.date_validate) : new Date(),
                         date_expired: new Date(),
                         motivo: "Quantidade zerada na edição",
                         deleted_by: user,

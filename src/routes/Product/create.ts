@@ -21,10 +21,15 @@ export const CreateProduct = async (app: FastifyInstance) => {
             try {
                 const productExists = await prisma.products.findFirst({
                     where: {
-                        name_product: name,
-                        estado: { not: "VENDIDO" }
+                        name_product: {
+                            equals: name,
+                            // mode: "insensitive"
+                        },
+                        // estado: { not: "VENDIDO" }
                     }
                 });
+
+                console.log("Produtos já cadastrados: 🧶🧶", productExists);
 
                 if (productExists) {
                     const duration = Date.now() - startTime;
@@ -52,7 +57,7 @@ export const CreateProduct = async (app: FastifyInstance) => {
                         name_product: name ?? "",
                         price,
                         category: category ?? "Sem categoria",
-                        date_validate: date_validate ?? "",
+                        date_validate: date_validate ? new Date(date_validate) : null,
                         quantity: quantity ?? "0",
                         updated_at: new Date(),
                         created_at: new Date(),

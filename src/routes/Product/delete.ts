@@ -87,7 +87,7 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                     category: product.category,
                     price: product.price,
                     quantity: product.quantity,
-                    date_validate: product.date_validate,
+                    date_validate: product.date_validate ? new Date(product.date_validate) : new Date(),
                     date_expired: new Date(),
                     motivo: "Eliminado pelo utilizador",
                     deleted_by: user.email,

@@ -16,7 +16,7 @@ export const CreateStockProduct = async (app: FastifyInstance) => {
                 where: {
                     name: {
                         equals: name ??  "",
-                        mode: "insensitive"
+                        // mode: "insensitive"
                     },
                 },
             });
@@ -29,7 +29,7 @@ export const CreateStockProduct = async (app: FastifyInstance) => {
                     preco_compra:preco_compra ?? null,
                     category: category,
                     categoriaId: categoriaId ?? null,
-                    date_validate: date_validate,
+                    date_validate: date_validate ? new Date(date_validate) : null,
                     quantity: quantity,
                     updated_at: new Date(),
                     id_estoque: randomUUID(),

@@ -65,6 +65,9 @@ export const GetInventario = async (app: FastifyInstance) => {
           actualizadoEm: string;
         };
 
+        const formatDate = (value: Date | string | null) =>
+          value ? new Date(value).toISOString() : null;
+
         const estoqueItems: InventarioItem[] = estoqueRaw.map((e) => {
           const qtd = Number(e.quantity) || 0;
           const precoCompra = Number(e.preco_compra) || 0;
@@ -89,8 +92,8 @@ export const GetInventario = async (app: FastifyInstance) => {
             valorCusto,
             valorVenda,
             margem: Number(margem.toFixed(2)),
-            dataValidade: e.date_validate || null,
-            estado: isExpired ? "EXPIRADO" : e.estado,
+            dataValidade: formatDate(e.date_validate),
+            estado: isExpired ? "EXPIRADO" : String(e.estado),
             actualizadoEm: e.updated_at.toISOString(),
           };
         });
@@ -119,8 +122,8 @@ export const GetInventario = async (app: FastifyInstance) => {
             valorCusto,
             valorVenda,
             margem: Number(margem.toFixed(2)),
-            dataValidade: p.date_validate || null,
-            estado: isExpired ? "EXPIRADO" : p.estado,
+            dataValidade: formatDate(p.date_validate),
+            estado: isExpired ? "EXPIRADO" : String(p.estado),
             actualizadoEm: p.updated_at.toISOString(),
           };
         });

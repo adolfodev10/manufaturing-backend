@@ -19,12 +19,12 @@ export const GetLogs = async (app: FastifyInstance) => {
         },
     },
         async (req, reply) => {
-            const { 
-                level, 
-                user, 
-                resource, 
-                startDate, 
-                endDate, 
+            const {
+                level,
+                user,
+                resource,
+                startDate,
+                endDate,
                 search,
                 page = "1",
                 limit = "50"
@@ -43,24 +43,24 @@ export const GetLogs = async (app: FastifyInstance) => {
             if (user) {
                 where.user = {
                     contains: user,
-                    mode: 'insensitive',
+                    // mode: 'insensitive',
                 };
             }
 
             if (resource) {
                 where.resource = {
                     contains: resource,
-                    mode: 'insensitive',
+                    // mode: 'insensitive',
                 };
             }
 
             if (startDate || endDate) {
                 where.timestamp = {};
-                
+
                 if (startDate) {
                     where.timestamp.gte = new Date(startDate);
                 }
-                
+
                 if (endDate) {
                     const end = new Date(endDate);
                     end.setHours(23, 59, 59, 999);
@@ -70,9 +70,24 @@ export const GetLogs = async (app: FastifyInstance) => {
 
             if (search) {
                 where.OR = [
-                    { action: { contains: search, mode: 'insensitive' } },
-                    { details: { contains: search, mode: 'insensitive' } },
-                    { user: { contains: search, mode: 'insensitive' } },
+                    {
+                        action: {
+                            contains: search,
+                            // mode: 'insensitive'
+                        }
+                    },
+                    {
+                        details: {
+                            contains: search,
+                            // mode: 'insensitive'
+                        }
+                    },
+                    {
+                        user: {
+                            contains: search,
+                            // mode: 'insensitive'
+                        }
+                    },
                 ];
             }
 
