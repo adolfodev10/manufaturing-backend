@@ -200,7 +200,7 @@ model estoque {
   name          String
   created_at    DateTime       @default(now())
   updated_at    DateTime
-  date_validate String
+  date_validate DateTime?
   price         String
   preco_compra  String?
   quantity      String
@@ -324,7 +324,7 @@ model products {
   logo          String?
   created_at    DateTime               @default(now())
   updated_at    DateTime
-  date_validate String
+  date_validate DateTime?
   price         String
   preco_compra  String?
   quantity      String
