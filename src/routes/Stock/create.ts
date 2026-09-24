@@ -1,13 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
-import { createProductSchema } from "../../modules/validations/product/create-product";
+import { createEstoqueSchema } from "../../modules/validations/product/create-product";
 import { prisma } from "../../lib/prismaclient";
 import { randomUUID } from "crypto";
 
 export const CreateStockProduct = async (app: FastifyInstance) => {
     app.withTypeProvider<ZodTypeProvider>().post('/stock/create', {
         schema: {
-            body: createProductSchema
+            body: createEstoqueSchema
         },
     },
         async (request, reply) => {
