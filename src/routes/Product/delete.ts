@@ -5,6 +5,8 @@ import { prisma } from "../../lib/prismaclient";
 import { logger } from "../../modules/services/logs/logger";
 import { verifyToken } from "../../modules/services/jwt/verifyToken";
 
+const rolesPermitidas = ["ADMINISTRADOR", "GERENTE"];
+
 export const DeleteProduct = async (app: FastifyInstance) => {
     app.withTypeProvider<ZodTypeProvider>().delete("/product/delete/:id_product", {
         schema: {
@@ -15,15 +17,7 @@ export const DeleteProduct = async (app: FastifyInstance) => {
     }, async (req: FastifyRequest, reply) => {
         const startTime = Date.now();
         const { id_product } = req.params as { id_product: string };
-        const user = (req as any).user;
         const ip = req.ip || req.socket.remoteAddress || "unknown";
-
-        const rolesPermitidas = ["ADMINISTRADOR", "GERENTE"];
-        if (!rolesPermitidas.includes(user?.role)) {
-            return reply.status(403).send({
-                error: "Não tens permissão para apagar produtos"
-            });
-        }
 
         try {
             const authHeader = req.headers.authorization;
@@ -37,25 +31,24 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                 return reply.status(401).send({ error: "Token inválido ou expirado" });
             }
 
-            const user = await prisma.users.findUnique({
+            const authUser = await prisma.users.findUnique({
                 where: { id_user: decoded.id_user },
             });
 
-            if (!user) {
+            if (!authUser) {
                 return reply.status(401).send({ error: "Usuário não encontrado" });
             }
 
-            const rolesPermitidas = ["ADMINISTRADOR", "GERENTE"];
-            if (!rolesPermitidas.includes(user.role)) {
-                const duration = Date.now() - startTime;
+            
+        if (!rolesPermitidas.includes(authUser?.role)) {
                 await logger.warning({
                     action: "DeleteProduct",
-                    user: user.email,
-                    details: `Tentativa de apagar produto sem permissão. Role: ${user.role}`,
+                    user: authUser.email,
+                    details: `Tentativa de apagar produto sem permissão. Role: ${authUser.role}`,
                     ip,
                     resource: "product",
                     resource_id: id_product,
-                    duration,
+                    duration: Date.now() - startTime,
                 });
                 return reply.status(403).send({
                     error: "Não tens permissão para apagar produtos"
@@ -70,12 +63,12 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                 const duration = Date.now() - startTime;
                 await logger.warning({
                     action: "DeleteProduct",
-                    user: user.email,
+                    user: authUser.email,
                     details: "Tentativa de apagar produto inexistente",
                     ip,
                     resource: "product",
                     resource_id: id_product,
-                    duration,
+                    duration: Date.now() - startTime,
                 });
                 return reply.status(404).send({ message: "Produto não encontrado" });
             }
@@ -90,7 +83,7 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                     date_validate: product.date_validate ? new Date(product.date_validate) : new Date(),
                     date_expired: new Date(),
                     motivo: "Eliminado pelo utilizador",
-                    deleted_by: user.email,
+                    deleted_by: authUser.email,
                 }
             });
 
@@ -98,15 +91,14 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                 where: { id_product },
             });
 
-            const duration = Date.now() - startTime;
             await logger.success({
                 action: "Eliminar Produtos",
-                user: user.email,
+                user: authUser.email,
                 details: `Produto "${product.name_product}" apagado com sucesso`,
                 ip,
                 resource: "product",
                 resource_id: id_product,
-                duration,
+                duration: Date.now() - startTime,
             });
 
             return reply.status(200).send({
@@ -115,7 +107,6 @@ export const DeleteProduct = async (app: FastifyInstance) => {
             });
 
         } catch (error: any) {
-            const duration = Date.now() - startTime;
             await logger.error({
                 action: "Eliminar Produtos",
                 user: "unknown",
@@ -123,11 +114,23 @@ export const DeleteProduct = async (app: FastifyInstance) => {
                 ip,
                 resource: "product",
                 resource_id: id_product,
-                duration,
+                duration: Date.now() - startTime,
             });
 
             if (error.message === "jwt expired" || error.message === "invalid token") {
                 return reply.status(401).send({ error: "Token inválido ou expirado" });
+            }
+
+            if (error.code === "P2003") {
+                return reply.status(409).send({
+                    error: "Produto não pode ser eliminado: existem registos vinculados."
+                });
+            }
+
+             if (error.code === "P2025") {
+                return reply.status(404).send({
+                    error: "Produto não encontrado."
+                });
             }
 
             return reply.status(500).send({ error: "Erro interno ao apagar produto" });
