@@ -24,11 +24,10 @@ export const createEstoqueSchema = z.object({
         .refine((value) => value.trim() !== "", { message: "Name must not be empty" }),
     price: z.string(),
     category: z.string().optional(),
-    categoriaId: z.string().uuid().optional(),
+    categoriaId: z.string().min(1, "Selecione uma categoria"),
     preco_compra: z.string().optional(),
     date_validate: z
-        .string()
-        .optional()
-        .refine((v) => !v || !isNaN(Date.parse(v)), { message: "Data inválida" }),
+        .coerce.date()
+        .optional(),
     quantity: z.string().min(1),
 });
