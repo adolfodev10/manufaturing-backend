@@ -13,7 +13,9 @@ export const EditProduct = async (app: FastifyInstance) => {
             body: z.object({
                 name_product: z.string().optional(),
                 category: z.string().optional(),
+                categoriaId: z.string().optional(),
                 price: z.string().optional(),
+                preco_compra: z.string().optional(),
                 quantity: z.string().optional(),
                 date_validate: z.string().optional(),
             }),
@@ -21,7 +23,7 @@ export const EditProduct = async (app: FastifyInstance) => {
     }, async (req, reply) => {
         const startTime = Date.now();
         const { id_product } = req.params;
-        const { name_product, category, price, quantity, date_validate } = req.body;
+        const { name_product, category, categoriaId, price, preco_compra, quantity, date_validate } = req.body;
         const parsedDateValidate = date_validate ? new Date(date_validate) : null;
         const ip = req.ip || req.socket.remoteAddress || "unknown";
         const user = (req as any).user?.email || "sistema";
@@ -73,8 +75,16 @@ export const EditProduct = async (app: FastifyInstance) => {
             if (category && productExists.category !== category) {
                 alteracoes.push(`Categoria: "${productExists.category}" → "${category}"`);
             }
+
+            if (categoriaId && productExists.categoriaId !== categoriaId) {
+                alteracoes.push(`ID Categoria: "${productExists.categoriaId}" → "${categoriaId}"`);
+            }
             if (price && productExists.price !== price) {
-                alteracoes.push(`Preço: ${Number(productExists.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} → ${Number(price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}`);
+                alteracoes.push(`Preço da Venda: ${Number(productExists.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} → ${Number(price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}`);
+            }
+            if (preco_compra && productExists.preco_compra !== preco_compra) {
+                alteracoes.push(`Preço da Compra: "${productExists.preco_compra}" → "${preco_compra}"`);
+
             }
             if (quantity && productExists.quantity !== quantity) {
                 alteracoes.push(`Quantidade: ${productExists.quantity} → ${quantity}`);
@@ -94,7 +104,9 @@ export const EditProduct = async (app: FastifyInstance) => {
                 data: {
                     name_product: name_product || productExists.name_product,
                     category: category || productExists.category,
+                    categoriaId: categoriaId || productExists.categoriaId,
                     price: price || productExists.price,
+                    preco_compra: preco_compra || productExists.preco_compra,
                     quantity: quantity || productExists.quantity,
                     date_validate: parsedDateValidate ?? productExists.date_validate,
                     updated_at: new Date(),
