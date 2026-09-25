@@ -24,7 +24,8 @@ export const CreateCategoria = async (app: FastifyInstance) => {
 
         const existente = await prisma.categoria.findFirst({
           where: {
-            nome: { equals: nome, 
+            nome: {
+              equals: nome,
             },
           },
         });

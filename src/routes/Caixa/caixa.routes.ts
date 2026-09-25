@@ -33,7 +33,7 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     },
     async (req, reply) => {
       const caixa = await getCaixaAberto(req.params.operadorId);
-      return reply.status(200).send({ success: true, data: caixa }); 
+      return reply.status(200).send({ success: true, data: caixa });
     }
   );
 

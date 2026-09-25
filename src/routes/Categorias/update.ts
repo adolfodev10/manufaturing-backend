@@ -34,8 +34,9 @@ export const UpdateCategoria = async (app: FastifyInstance) => {
         if (nome && nome.toLowerCase() !== existente.nome.toLowerCase()) {
           const duplicado = await prisma.categoria.findFirst({
             where: {
-              nome: { equals: nome, 
-               },
+              nome: {
+                equals: nome,
+              },
               NOT: { id },
             },
           });

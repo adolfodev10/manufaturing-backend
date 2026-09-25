@@ -205,9 +205,8 @@ export const CreateFatura = async (app: FastifyInstance) => {
           action: "Criar Fatura",
           user,
           user_id: userId,
-          details: `Erro ao criar fatura: ${
-            error instanceof Error ? error.message : "Erro desconhecido"
-          }`,
+          details: `Erro ao criar fatura: ${error instanceof Error ? error.message : "Erro desconhecido"
+            }`,
           ip,
           resource: "faturas",
           duration,

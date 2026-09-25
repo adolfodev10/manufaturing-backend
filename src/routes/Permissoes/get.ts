@@ -33,12 +33,21 @@ export const ListarPermissoes = async (app: FastifyInstance) => {
 
                 if (search) {
                     where.OR = [
-                        { nome: { contains: search, 
-                         } },
-                        { descricao: { contains: search, 
-                         } },
-                        { recurso: { contains: search, 
-                         } },
+                        {
+                            nome: {
+                                contains: search,
+                            }
+                        },
+                        {
+                            descricao: {
+                                contains: search,
+                            }
+                        },
+                        {
+                            recurso: {
+                                contains: search,
+                            }
+                        },
                     ];
                 }
 

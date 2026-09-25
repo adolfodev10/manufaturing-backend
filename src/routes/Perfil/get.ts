@@ -38,10 +38,16 @@ export const ListarPerfis = async (app: FastifyInstance) => {
 
                 if (search) {
                     where.OR = [
-                        { nome: { contains: search, 
-                         } },
-                        { descricao: { contains: search, 
-                         } },
+                        {
+                            nome: {
+                                contains: search,
+                            }
+                        },
+                        {
+                            descricao: {
+                                contains: search,
+                            }
+                        },
                     ];
                 }
 

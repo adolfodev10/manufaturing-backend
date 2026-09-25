@@ -19,9 +19,9 @@ export const AddProductInStock = async (app: FastifyInstance) => {
             const userId = (req as any).user?.id;
             try {
                 const nomeLimpo = (name_product ?? "").trim();
-                
+
                 const existingProduct = await prisma.products.findFirst({
-                    where: { 
+                    where: {
                         name_product: {
                             equals: nomeLimpo,
                         },
@@ -42,7 +42,7 @@ export const AddProductInStock = async (app: FastifyInstance) => {
                         duration,
                     });
 
-                    return reply.status(409).send({ 
+                    return reply.status(409).send({
                         message: "Já existe um produto com este nome em stock",
                         produto_existente: existingProduct.id_product
                     });
@@ -54,12 +54,12 @@ export const AddProductInStock = async (app: FastifyInstance) => {
                         category: category ?? "Sem categoria",
                         date_validate: date_validate ?? "",
                         price,
-                        preco_compra:preco_compra,
+                        preco_compra: preco_compra,
                         quantity,
                         updated_at: new Date(),
                         created_at: new Date(),
                         estado: "NAO_VENDIDO",
-                        id_product:randomUUID(),
+                        id_product: randomUUID(),
                     }
                 });
 
@@ -70,21 +70,21 @@ export const AddProductInStock = async (app: FastifyInstance) => {
                     user,
                     user_id: userId,
                     details: `Produto adicionado ao stock com sucesso. ` +
-                             `ID: ${addProduct.id_product} | ` +
-                             `Nome: "${addProduct.name_product}" | ` +
-                             `Categoria: ${addProduct.category} | ` +
-                             `Preço: ${Number(addProduct.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} | ` +
-                             `Quantidade: ${addProduct.quantity} | ` +
-                             `Validade: ${addProduct.date_validate || 'Não definida'}`,
+                        `ID: ${addProduct.id_product} | ` +
+                        `Nome: "${addProduct.name_product}" | ` +
+                        `Categoria: ${addProduct.category} | ` +
+                        `Preço: ${Number(addProduct.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} | ` +
+                        `Quantidade: ${addProduct.quantity} | ` +
+                        `Validade: ${addProduct.date_validate || 'Não definida'}`,
                     ip,
                     resource: "products",
                     resource_id: addProduct.id_product,
                     duration,
                 });
 
-                return reply.status(201).send({ 
+                return reply.status(201).send({
                     message: "Produto adicionado com sucesso",
-                    product: addProduct 
+                    product: addProduct
                 });
 
             } catch (error: any) {
@@ -101,10 +101,10 @@ export const AddProductInStock = async (app: FastifyInstance) => {
                 });
 
                 console.error("Erro ao adicionar produto:", error);
-                
-                return reply.status(500).send({ 
+
+                return reply.status(500).send({
                     error: "Erro ao adicionar produto",
-                    message: error.message 
+                    message: error.message
                 });
             }
         });

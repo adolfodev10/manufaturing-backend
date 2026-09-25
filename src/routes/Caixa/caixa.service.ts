@@ -70,7 +70,7 @@ export async function calcularResumoCaixa(caixaId: string) {
     totalTPA,
     totalMisto,
     totalFaturas: caixa.faturas.length,
-    saldoFinal: valorInicial + totalDinheiro, 
+    saldoFinal: valorInicial + totalDinheiro,
   };
 }
 
