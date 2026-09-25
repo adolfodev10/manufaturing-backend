@@ -1,4 +1,3 @@
-// backend/modules/services/sms/sms.service.ts
 import axios from 'axios';
 
 interface SmsWelcomeData {
@@ -11,21 +10,17 @@ interface SmsWelcomeData {
 export const enviarSMSBoasVindas = async (data: SmsWelcomeData): Promise<{ success: boolean; error?: string }> => {
   const { telefone, name, password, email } = data;
 
-  // Limpar número (apenas dígitos)
   let numeroLimpo = telefone.replace(/\D/g, '');
 
-  // Remover código do país se tiver (Angola = 244)
   if (numeroLimpo.startsWith('244')) {
     numeroLimpo = numeroLimpo.substring(3);
   }
 
-  // Garantir que o número tem 9 dígitos (Angola)
   if (numeroLimpo.length !== 9) {
     console.error(`❌ Número inválido: ${numeroLimpo} (deve ter 9 dígitos)`);
     return { success: false, error: 'Número de telefone inválido' };
   }
 
-  // Gerar mensagem de boas-vindas
   const mensagem = gerarMensagemBoasVindas({
     name,
     email: email || 'não informado',
@@ -71,13 +66,10 @@ export const enviarSMSBoasVindas = async (data: SmsWelcomeData): Promise<{ succe
   }
 };
 
-// ============================================
-// MENSAGENS PARA O EKO
-// ============================================
 
 export const gerarMensagemBoasVindas = (data: { name: string; email: string; password: string }): string => {
   const loginUrl = process.env.FRONTEND_URL || 'https://eko-manufaturing.vercel.app';
-  
+
   return `Bem-vindo ao EKO, ${data.name}! 🎉 Sua conta foi criada com sucesso. Email: ${data.email} | Senha: ${data.password}. Acesse: ${loginUrl}/auth/login. Recomendamos alterar sua senha após o primeiro acesso. - EKO Sistema`;
 };
 
@@ -109,6 +101,6 @@ export const gerarMensagemEstoqueBaixo = (produto: any): string => {
 
 export const gerarMensagemUsuarioCriado = (data: { name: string; email: string; telefone: string; password: string }): string => {
   const loginUrl = process.env.FRONTEND_URL || 'https://eko-manufaturing.vercel.app';
-  
+
   return `🔐 EKO - Usuário criado: ${data.name}. Email: ${data.email} | Senha: ${data.password}. Acesse: ${loginUrl}/auth/login - EKO Sistema`;
 };

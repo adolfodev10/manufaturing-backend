@@ -16,7 +16,6 @@ export const CreateStockProduct = async (app: FastifyInstance) => {
                 where: {
                     name: {
                         equals: name ??  "",
-                        // mode: "insensitive"
                     },
                 },
             });

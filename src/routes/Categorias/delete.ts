@@ -35,7 +35,6 @@ export const DeleteCategoria = async (app: FastifyInstance) => {
           return reply.status(404).send({ error: "Categoria não encontrada" });
         }
 
-        // ✅ Bloqueia se tem produtos/estoque associados
         const totalAssociados =
           categoria._count.produtos + categoria._count.estoque;
 

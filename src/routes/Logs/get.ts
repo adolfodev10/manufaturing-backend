@@ -43,14 +43,12 @@ export const GetLogs = async (app: FastifyInstance) => {
             if (user) {
                 where.user = {
                     contains: user,
-                    // mode: 'insensitive',
                 };
             }
 
             if (resource) {
                 where.resource = {
                     contains: resource,
-                    // mode: 'insensitive',
                 };
             }
 
@@ -73,19 +71,16 @@ export const GetLogs = async (app: FastifyInstance) => {
                     {
                         action: {
                             contains: search,
-                            // mode: 'insensitive'
                         }
                     },
                     {
                         details: {
                             contains: search,
-                            // mode: 'insensitive'
                         }
                     },
                     {
                         user: {
                             contains: search,
-                            // mode: 'insensitive'
                         }
                     },
                 ];

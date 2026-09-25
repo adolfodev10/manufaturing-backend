@@ -13,7 +13,6 @@ import { createCaixaSchema, fecharCaixaSchema, listarCaixaQuerySchema } from "..
 export const caixaRoutes = async (app: FastifyInstance) => {
   const server = app.withTypeProvider<ZodTypeProvider>();
 
-  // ---------- ABRIR ----------
   server.post(
     "/caixa/abrir",
     { schema: { body: createCaixaSchema } },
@@ -27,7 +26,6 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     }
   );
 
-  // ---------- CAIXA ABERTO DO OPERADOR ----------
   server.get(
     "/caixa/aberto/:operadorId",
     {
@@ -35,11 +33,10 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     },
     async (req, reply) => {
       const caixa = await getCaixaAberto(req.params.operadorId);
-      return reply.status(200).send({ success: true, data: caixa }); // null se não houver
+      return reply.status(200).send({ success: true, data: caixa }); 
     }
   );
 
-  // ---------- RESUMO ----------
   server.get(
     "/caixa/:id/resumo",
     { schema: { params: z.object({ id: z.string().uuid() }) } },
@@ -53,7 +50,6 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     }
   );
 
-  // ---------- FECHAR ----------
   server.patch(
     "/caixa/fechar",
     { schema: { body: fecharCaixaSchema } },
@@ -67,7 +63,6 @@ export const caixaRoutes = async (app: FastifyInstance) => {
     }
   );
 
-  // ---------- LISTAR ----------
   server.get(
     "/caixa/getAll",
     { schema: { querystring: listarCaixaQuerySchema } },

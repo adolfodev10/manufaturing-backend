@@ -28,7 +28,6 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                 const { faturaId, motivo } = request.body;
                 const user = (request as any).user;
 
-                // 1. Permissão
                 if (
                     user?.role !== "ADMINISTRADOR" &&
                     user?.role !== "GERENTE" &&
@@ -44,7 +43,6 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                         select: { name: true },
                     }) : null;
 
-                // 2. Buscar fatura original com itens
                 const faturaOriginal = await prisma.faturas.findUnique({
                     where: { id_fatura: faturaId },
                     include: { itens: true },
@@ -68,7 +66,6 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                     });
                 }
 
-                // 3. Gerar número sequencial da NC
                 const anoAtual = new Date().getFullYear();
                 const ultimaNC = await prisma.faturas.findFirst({
                     where: {
@@ -85,9 +82,7 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                 }
                 const numeroNC = `NC ${anoAtual}/${String(proximoNumero).padStart(4, "0")}`;
 
-                // 4. Criar NC + marcar original numa transação
                 const resultado = await prisma.$transaction(async (tx) => {
-                    // 4a. Marcar original como CANCELADA
                     await tx.faturas.update({
                         where: { id_fatura: faturaId },
                         data: {
@@ -98,8 +93,6 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                         },
                     });
 
-
-                    // 4b. Criar NC com valores negativos
                     const notaCredito = await tx.faturas.create({
                         data: {
                             numero: numeroNC,
@@ -118,7 +111,6 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                             empresaTelefone: faturaOriginal.empresaTelefone,
                             empresaEmail: faturaOriginal.empresaEmail,
 
-                            // Valores negativos (NC abate a fatura original)
                             subtotal: -Math.abs(faturaOriginal.subtotal ?? 0),
                             impostos: -Math.abs(faturaOriginal.impostos ?? 0),
                             descontos: 0,
@@ -133,7 +125,6 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                             status: "EMITIDA",
                             statusAGT: "PENDENTE",
 
-                            // Não vincula à mesma caixa para não confundir o saldo do turno
                             caixaId: null,
 
                             itens: {
@@ -155,9 +146,6 @@ export const CancelarFatura = async (app: FastifyInstance) => {
                     return { notaCredito };
                 });
 
-                // 5. Enviar NC para AGT (opcional — faça em background ou aqui)
-                // Descomente se tiver a função:
-                //
                 try {
                     await enviarDocumentoAGT({
                         tipoDocumento: "NC",

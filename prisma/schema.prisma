@@ -407,7 +407,6 @@ model produtosExpirados {
   @@map("produtosExpirados")
 }
 
-// ==================== PRODUÇÃO DE BEBIDAS ====================
 
 model Producoes {
   id             String   @id @default(uuid())

@@ -1,12 +1,7 @@
 import { prisma } from "../../lib/prismaclient";
 import { CreateCaixaInput, FecharCaixaInput } from "../../modules/validations/caixa/caixa.schema";
 
-/**
- * Abre um novo caixa para o operador.
- * Regra: um operador só pode ter 1 caixa ABERTA.
- */
 export async function abrirCaixa(data: CreateCaixaInput) {
-  // 1. Verificar se já tem caixa aberta
   const caixaAberta = await prisma.caixa.findFirst({
     where: {
       operador_id: data.operador_id,
@@ -18,7 +13,6 @@ export async function abrirCaixa(data: CreateCaixaInput) {
     throw new Error("Já existe um caixa aberto para este operador.");
   }
 
-  // 2. Criar
   return prisma.caixa.create({
     data: {
       operador: data.operador,
@@ -30,9 +24,7 @@ export async function abrirCaixa(data: CreateCaixaInput) {
   });
 }
 
-/**
- * Devolve o caixa aberto do operador (ou null).
- */
+
 export async function getCaixaAberto(operadorId: string) {
   return prisma.caixa.findFirst({
     where: { operador_id: operadorId, status: "ABERTA" },
@@ -44,9 +36,7 @@ export async function getCaixaAberto(operadorId: string) {
   });
 }
 
-/**
- * Calcula o resumo (totais) de um caixa com base nas faturas ligadas.
- */
+
 export async function calcularResumoCaixa(caixaId: string) {
   const caixa = await prisma.caixa.findUnique({
     where: { id: caixaId },
@@ -66,8 +56,6 @@ export async function calcularResumoCaixa(caixaId: string) {
     } else if (fp === "TPA") {
       totalTPA += f.totalPagar;
     } else if (fp === "MISTO") {
-      // Aqui assumimos que a fatura guarda os splits em observacoes
-      // ou podes adicionar campos próprios (valorDinheiro/valorTPA)
       totalMisto += f.totalPagar;
     }
   }
@@ -82,13 +70,10 @@ export async function calcularResumoCaixa(caixaId: string) {
     totalTPA,
     totalMisto,
     totalFaturas: caixa.faturas.length,
-    saldoFinal: valorInicial + totalDinheiro, // saldo em espécie
+    saldoFinal: valorInicial + totalDinheiro, 
   };
 }
 
-/**
- * Fecha o caixa: calcula totais, grava snapshot, marca FECHADA.
- */
 export async function fecharCaixa(data: FecharCaixaInput) {
   const resumo = await calcularResumoCaixa(data.caixaId);
 

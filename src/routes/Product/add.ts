@@ -24,7 +24,6 @@ export const AddProductInStock = async (app: FastifyInstance) => {
                     where: { 
                         name_product: {
                             equals: nomeLimpo,
-                            // mode: "insensitive"
                         },
                         estado: { not: "VENDIDO" }
                     }

@@ -18,7 +18,6 @@ const faturaItemSchema = z.object({
 });
 
 const createFaturaSchema = z.object({
-  // ⚠️ numero agora é OPCIONAL — o backend gera
   numero: z.string().optional(),
   dataEmissao: z.string(),
   dataVencimento: z.string().optional(),
@@ -107,7 +106,6 @@ export const CreateFatura = async (app: FastifyInstance) => {
           statusAGT,
         } = req.body;
 
-        // 1) operadorId obrigatório
         if (!operadorId) {
           return res.status(400).send({
             success: false,
@@ -115,7 +113,6 @@ export const CreateFatura = async (app: FastifyInstance) => {
           });
         }
 
-        // 2) caixa aberto
         const caixaAberto = await prisma.caixa.findFirst({
           where: { operador_id: operadorId, status: "ABERTA" },
         });
@@ -127,8 +124,6 @@ export const CreateFatura = async (app: FastifyInstance) => {
           });
         }
 
-        // 3) Geração do número + criação da fatura numa única transacção.
-        //    Se a criação falhar, o número NÃO é queimado.
         const fatura = await prisma.$transaction(async (tx) => {
           const emissao = new Date(dataEmissao);
           const numero = await gerarNumeroFatura(

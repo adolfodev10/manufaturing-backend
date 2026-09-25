@@ -26,18 +26,15 @@ export const UpdateCategoria = async (app: FastifyInstance) => {
         const { id } = request.params;
         const { nome, descricao, ativo } = request.body;
 
-        // Categoria existe?
         const existente = await prisma.categoria.findUnique({ where: { id } });
         if (!existente) {
           return reply.status(404).send({ error: "Categoria não encontrada" });
         }
 
-        // Se está a mudar o nome, verifica duplicado
         if (nome && nome.toLowerCase() !== existente.nome.toLowerCase()) {
           const duplicado = await prisma.categoria.findFirst({
             where: {
               nome: { equals: nome, 
-                // mode: "insensitive"
                },
               NOT: { id },
             },

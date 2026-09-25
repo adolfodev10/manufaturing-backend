@@ -15,7 +15,6 @@ export const CreateCategoria = async (app: FastifyInstance) => {
       const userId = (request as any).user?.id;
       const userRole = ((request as any).user?.role || "").toUpperCase();
 
-      // ✅ Só ADMINISTRADOR e GERENTE podem criar
       if (!["ADMINISTRADOR", "GERENTE"].includes(userRole)) {
         return reply.status(403).send({ error: "Sem permissão para criar categorias" });
       }
@@ -23,11 +22,9 @@ export const CreateCategoria = async (app: FastifyInstance) => {
       try {
         const { nome, descricao } = request.body;
 
-        // ✅ Verifica duplicado case-insensitive
         const existente = await prisma.categoria.findFirst({
           where: {
             nome: { equals: nome, 
-              // mode: "insensitive" 
             },
           },
         });

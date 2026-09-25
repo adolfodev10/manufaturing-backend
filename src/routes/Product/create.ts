@@ -23,9 +23,7 @@ export const CreateProduct = async (app: FastifyInstance) => {
                     where: {
                         name_product: {
                             equals: name,
-                            // mode: "insensitive"
                         },
-                        // estado: { not: "VENDIDO" }
                     }
                 });
 

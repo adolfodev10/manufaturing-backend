@@ -1,7 +1,8 @@
 import axios from "axios";
+import { env } from "process";
 
-// const localUrl = "http://localhost:3300"
-const apiUrl = "https://manufaturing-backend.onrender.com";
+// const localUrl = env.LOCAL_URL
+const apiUrl = env.API_URL;
 
 export const api = axios.create({
     baseURL: apiUrl,

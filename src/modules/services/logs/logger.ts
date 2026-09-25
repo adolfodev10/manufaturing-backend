@@ -64,8 +64,6 @@ export const logger = {
   },
 
   logSync(data: LogData) {
-    // Grava direto via Prisma (não há versão "sync" real com Prisma,
-    // mas podes chamar sem await)
     this.log(data).catch(console.error);
   },
 };

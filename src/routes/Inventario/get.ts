@@ -19,13 +19,9 @@ export const GetInventario = async (app: FastifyInstance) => {
       try {
         const { categoriaId, local, apenasComStock } = request.query;
 
-        // ============================================================
-        // 1. Buscar itens do ARMAZÉM
-        // ============================================================
         const whereEstoque: any = {};
         if (categoriaId) whereEstoque.categoriaId = categoriaId;
         if (apenasComStock) {
-          // quantity é string — filtro numérico no JS depois
         }
 
         const estoqueRaw = await prisma.estoque.findMany({
@@ -34,9 +30,6 @@ export const GetInventario = async (app: FastifyInstance) => {
           orderBy: { name: "asc" },
         });
 
-        // ============================================================
-        // 2. Buscar itens da LOJA
-        // ============================================================
         const whereProducts: any = {};
         if (categoriaId) whereProducts.categoriaId = categoriaId;
 
@@ -46,9 +39,6 @@ export const GetInventario = async (app: FastifyInstance) => {
           orderBy: { name_product: "asc" },
         });
 
-        // ============================================================
-        // 3. Normalizar para um formato único
-        // ============================================================
         type InventarioItem = {
           id: string;
           tipo: "ARMAZEM" | "LOJA";
@@ -128,9 +118,6 @@ export const GetInventario = async (app: FastifyInstance) => {
           };
         });
 
-        // ============================================================
-        // 4. Aplicar filtros finais
-        // ============================================================
         let items: InventarioItem[] = [];
 
         if (local === "armazem") {
@@ -145,9 +132,6 @@ export const GetInventario = async (app: FastifyInstance) => {
           items = items.filter((i) => i.quantidade > 0);
         }
 
-        // ============================================================
-        // 5. Calcular totais
-        // ============================================================
         const totalProdutosArmazem = estoqueItems.reduce(
           (s, i) => s + i.quantidade,
           0
