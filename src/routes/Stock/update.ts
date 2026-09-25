@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
-import { z } from "zod";
+import { date, z } from "zod";
 import { prisma } from "../../lib/prismaclient";
 
 export const EditStock = async (app: FastifyInstance) => {
@@ -12,14 +12,16 @@ export const EditStock = async (app: FastifyInstance) => {
             body: z.object({
                 name: z.string().optional(),
                 category: z.string().optional(),
+                categoriaId: z.string().optional(),
                 price: z.string().optional(),
+                preco_compra: z.string().optional(),
                 quantity: z.string().optional(),
                 date_validate: z.string(),
             }),
         },
     }, async (req, reply) => {
         const { id_estoque } = req.params;
-        const { name, category, price, quantity, date_validate } = req.body;
+        const { name, category, categoriaId, price, preco_compra, quantity, date_validate } = req.body;
         if (!id_estoque) {
             return reply.status(400).send({ message: "O campo id é obrigatório" });
         }
@@ -37,11 +39,17 @@ export const EditStock = async (app: FastifyInstance) => {
                 id_estoque,
             },
             data: {
-                name,
-                category,
+                name: name ?? stockExists.name,
+                category : category ?? stockExists.categoriaId,
+                categoriaId: categoriaId ?? stockExists.category,
+
                 price: price || stockExists.price,
+                preco_compra: preco_compra ?? stockExists.preco_compra,
+
                 quantity: quantity || stockExists.quantity,
-                date_validate,
+                date_validate: date_validate
+                ? new Date(date_validate)
+                : stockExists.date_validate,
             },
         });
 
