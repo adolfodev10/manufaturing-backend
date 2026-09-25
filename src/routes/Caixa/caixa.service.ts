@@ -92,9 +92,6 @@ export async function fecharCaixa(data: FecharCaixaInput) {
   });
 }
 
-/**
- * Lista todos os caixas (para admin), com filtros opcionais.
- */
 export async function listarCaixas(filtros?: {
   operadorId?: string;
   status?: "ABERTA" | "FECHADA";

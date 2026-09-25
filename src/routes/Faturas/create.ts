@@ -52,10 +52,6 @@ const createFaturaSchema = z.object({
   statusAGT: z.string().optional().default("PENDENTE"),
 });
 
-/**
- * Gera o próximo número de fatura de forma segura para o mês/ano dado.
- * Usa transacção SERIALIZABLE para evitar race conditions.
- */
 async function gerarNumeroFatura(
   tx: any,
   ano: number,

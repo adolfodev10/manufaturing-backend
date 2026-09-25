@@ -3,9 +3,6 @@ import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from "../../lib/prismaclient";
 import { z } from "zod";
 
-/* ============================================================
-   Configurações padrão (fallback quando a BD está vazia)
-   ============================================================ */
 const DEFAULT_CONFIGS: Record<string, any> = {
   geral: {
     nome_empresa: "EKO - COMÉRCIO GERAL (SU), LDA",
@@ -147,11 +144,7 @@ const CATEGORIAS = [
   "sistema",
 ] as const;
 
-/* ============================================================
-   Rotas
-   ============================================================ */
 export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
-  /* GET /configuracoes — devolve todas as categorias */
   app.withTypeProvider<ZodTypeProvider>().get(
     "/configuracoes",
     async (_request, reply) => {
@@ -176,7 +169,6 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
     }
   );
 
-  /* PUT /configuracoes — salva tudo */
   app.withTypeProvider<ZodTypeProvider>().put(
     "/configuracoes",
     {
@@ -236,7 +228,6 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
     }
   );
 
-  /* GET /configuracoes/:categoria */
   app.withTypeProvider<ZodTypeProvider>().get(
     "/configuracoes/:categoria",
     {
@@ -266,7 +257,6 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
     }
   );
 
-  /* PUT /configuracoes/:categoria */
   app.withTypeProvider<ZodTypeProvider>().put(
     "/configuracoes/:categoria",
     {
@@ -306,9 +296,7 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
     }
   );
 
-  /* ============================================================
-   POST /configuracoes/gerar-rsa — gera par RSA real
-   ============================================================ */
+
   app.withTypeProvider<ZodTypeProvider>().post(
     "/configuracoes/gerar-rsa",
     async (_request, reply) => {
@@ -487,7 +475,6 @@ export const ConfiguracoesRoutes = async (app: FastifyInstance) => {
     }
   );
 
-  /* POST /configuracoes/reset */
   app.withTypeProvider<ZodTypeProvider>().post(
     "/configuracoes/reset",
     async (request, reply) => {
