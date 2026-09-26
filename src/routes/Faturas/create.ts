@@ -260,7 +260,6 @@ export const CreateFatura = async (app: FastifyInstance) => {
           let numero: string;
 
           if (req.body.numero) {
-            // Validar formato
             const formatoValido = /^FR 000AB\.\d{4}\/\d{2}\d{5}$/.test(
               req.body.numero,
             );
@@ -271,7 +270,6 @@ export const CreateFatura = async (app: FastifyInstance) => {
               );
             }
 
-            // Verificar duplicado DENTRO da transação
             const existe = await tx.faturas.findUnique({
               where: { numero: req.body.numero },
               select: { id_fatura: true },
@@ -362,13 +360,14 @@ export const CreateFatura = async (app: FastifyInstance) => {
         return res.status(201).send({ success: true, data: fatura });
       } catch (error) {
         const duration = Date.now() - startTime;
+        const mensagem =
+          error instanceof Error ? error.message : "Erro desconhecido";
 
         logger.error({
           action: "Criar Fatura",
           user,
           user_id: userId,
-          details: `Erro ao criar fatura: ${error instanceof Error ? error.message : "Erro desconhecido"
-            }`,
+          details: `Erro ao criar fatura: ${mensagem}`,
           ip,
           resource: "faturas",
           duration,
@@ -376,10 +375,28 @@ export const CreateFatura = async (app: FastifyInstance) => {
         });
 
         console.error("Erro ao criar fatura:", error);
+
+        if (mensagem.includes("Número de fatura já existe")) {
+          return res.status(409).send({
+            success: false,
+            message: mensagem,
+          });
+        }
+
+        if (
+          mensagem.includes("Formato de número de fatura inválido") ||
+          mensagem.includes("Desconto")
+        ) {
+          return res.status(400).send({
+            success: false,
+            message: mensagem,
+          });
+        }
+
         return res.status(500).send({
           success: false,
           message: "Erro interno ao criar fatura",
-          error: error instanceof Error ? error.message : error,
+          error: mensagem,
         });
       }
     }
