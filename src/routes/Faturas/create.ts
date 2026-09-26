@@ -127,19 +127,26 @@ async function gerarNumeroFatura(
   const mesFormatado = String(mes).padStart(2, "0");
   const prefixo = `FR 000AB.${ano}/${mesFormatado}`;
 
-  const ultima = await tx.faturas.findFirst({
-    where: { numero: { startsWith: prefixo } },
-    orderBy: { numero: "desc" },
-    select: { numero: true },
+  const serie = await tx.series.upsert({
+    where: {
+      tipo_ano_mes: {
+        tipo: "FR",
+        ano,
+        mes,
+      },
+    },
+    create: {
+      tipo: "FR",
+      ano,
+      mes,
+      ultimo: 1,
+      prefixo,
+    },
+    update: {
+      ultimo: { increment: 1 },
+    },
   });
-
-  let proximo = 1;
-  if (ultima) {
-    const match = ultima.numero.match(/(\d{5})$/);
-    if (match) proximo = parseInt(match[1], 10) + 1;
-  }
-
-  return `${prefixo}${String(proximo).padStart(5, "0")}`;
+  return `${serie.prefixo}${String(serie.ultimo).padStart(5, "0")}`;
 }
 
 export const CreateFatura = async (app: FastifyInstance) => {
@@ -187,7 +194,7 @@ export const CreateFatura = async (app: FastifyInstance) => {
           });
         }
 
-           let calculado;
+        let calculado;
         try {
           calculado = recalcularTotais(itens);
         } catch (err: any) {
@@ -212,7 +219,7 @@ export const CreateFatura = async (app: FastifyInstance) => {
             resource: "faturas",
           });
 
-           return res.status(400).send({
+          return res.status(400).send({
             success: false,
             message:
               "Os totais enviados não correspondem ao cálculo do servidor. Fatura recusada.",
