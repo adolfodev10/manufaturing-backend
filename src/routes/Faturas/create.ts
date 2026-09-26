@@ -176,6 +176,24 @@ export const CreateFatura = async (app: FastifyInstance) => {
           statusAGT,
         } = req.body;
 
+        const statusAGTFinal = statusAGT || "PENDENTE";
+
+        if (statusAGTFinal === "ENVIADO" && !hashFiscal) {
+          return res.status(400).send({
+            success: false,
+            message:
+              "Fatura não pode ser marcada como ENVIADO à AGT sem hashFiscal. Envie primeiro à AGT.",
+          });
+        }
+
+        if (statusAGTFinal === "ERRO" && hashFiscal) {
+          return res.status(400).send({
+            success: false,
+            message:
+              "Fatura com erro AGT não pode ter hashFiscal. Verifique o fluxo de envio.",
+          });
+        }
+
         if (!operadorId) {
           return res.status(400).send({
             success: false,
@@ -219,6 +237,7 @@ export const CreateFatura = async (app: FastifyInstance) => {
             resource: "faturas",
           });
 
+
           return res.status(400).send({
             success: false,
             message:
@@ -237,11 +256,41 @@ export const CreateFatura = async (app: FastifyInstance) => {
 
         const fatura = await prisma.$transaction(async (tx) => {
           const emissao = new Date(dataEmissao);
-          const numero = await gerarNumeroFatura(
-            tx,
-            emissao.getFullYear(),
-            emissao.getMonth() + 1
-          );
+
+          let numero: string;
+
+          if (req.body.numero) {
+            // Validar formato
+            const formatoValido = /^FR 000AB\.\d{4}\/\d{2}\d{5}$/.test(
+              req.body.numero,
+            );
+
+            if (!formatoValido) {
+              throw new Error(
+                `Formato de número de fatura inválido: "${req.body.numero}".`,
+              );
+            }
+
+            // Verificar duplicado DENTRO da transação
+            const existe = await tx.faturas.findUnique({
+              where: { numero: req.body.numero },
+              select: { id_fatura: true },
+            });
+
+            if (existe) {
+              throw new Error(
+                `Número de fatura já existe: "${req.body.numero}".`,
+              );
+            }
+
+            numero = req.body.numero;
+          } else {
+            numero = await gerarNumeroFatura(
+              tx,
+              emissao.getFullYear(),
+              emissao.getMonth() + 1,
+            );
+          }
 
           return tx.faturas.create({
             data: {
@@ -271,7 +320,7 @@ export const CreateFatura = async (app: FastifyInstance) => {
               formaPagamento,
               observacoes,
               status: "EMITIDA",
-              statusAGT: statusAGT || "PENDENTE",
+              statusAGT: statusAGTFinal,
               hashFiscal,
               qrCodeData,
               caixaId: caixaAberto.id,
