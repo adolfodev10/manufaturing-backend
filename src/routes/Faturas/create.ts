@@ -9,12 +9,12 @@ const faturaItemSchema = z.object({
   codigo: z.string().optional(),
   descricao: z.string(),
   quantidade: z.number().int().min(1),
-  precoUnitario: z.number(),
-  desconto: z.number().optional().default(0),
+  precoUnitario: z.number().nonnegative(),
+  desconto: z.number().nonnegative().optional().default(0),
   valor: z.number(),
   imposto: z.number(),
   total: z.number(),
-  taxaIVA: z.number().optional().default(14),
+  taxaIVA: z.number().min(0).max(100).optional().default(14),
 });
 
 const createFaturaSchema = z.object({
@@ -22,7 +22,7 @@ const createFaturaSchema = z.object({
   dataEmissao: z.string(),
   dataVencimento: z.string().optional(),
   cliente: z.object({
-    nome: z.string(),
+    nome: z.string().min(1),
     nif: z.string().optional(),
     endereco: z.string().optional(),
     telefone: z.string().optional(),
@@ -30,13 +30,13 @@ const createFaturaSchema = z.object({
     codigoCliente: z.string().optional(),
   }),
   empresa: z.object({
-    nome: z.string(),
-    nif: z.string(),
+    nome: z.string().min(1),
+    nif: z.string().min(1),
     endereco: z.string(),
     telefone: z.string(),
     email: z.string().optional(),
   }),
-  itens: z.array(faturaItemSchema),
+  itens: z.array(faturaItemSchema).min(1),
   totais: z.object({
     semImpostos: z.number(),
     impostos: z.number(),
@@ -51,6 +51,73 @@ const createFaturaSchema = z.object({
   qrCodeData: z.string().optional(),
   statusAGT: z.string().optional().default("PENDENTE"),
 });
+
+type FaturaItemInput = z.infer<typeof faturaItemSchema>;
+
+function recalcularTotais(itens: FaturaItemInput[]) {
+  let semImpostos = 0;
+  let impostos = 0;
+  let descontos = 0;
+
+  const itensCalculados = itens.map((item) => {
+    const bruto = item.quantidade * item.precoUnitario;
+    const desconto = item.desconto ?? 0;
+
+    if (desconto > bruto) {
+      throw new Error(
+        `Desconto (${desconto}) maior que o valor bruto (${bruto}) no item "${item.descricao}"`,
+      );
+    }
+
+    const valor = bruto - desconto;
+    const taxa = item.taxaIVA ?? 14;
+    const imposto = round2(valor * (taxa / 100));
+    const total = round2(valor + imposto);
+
+    semImpostos += valor;
+    impostos += imposto;
+    descontos += desconto;
+
+    return {
+      codigo: item.codigo || "-",
+      descricao: item.descricao,
+      quantidade: item.quantidade,
+      precoUnitario: item.precoUnitario,
+      desconto,
+      valor: round2(valor),
+      imposto,
+      total,
+      taxaIVA: taxa,
+    };
+  });
+
+  return {
+    itensCalculados,
+    semImpostos: round2(semImpostos),
+    impostos: round2(impostos),
+    descontos: round2(descontos),
+    totalPagar: round2(semImpostos + impostos),
+  };
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function totaisBatem(
+  cliente: { semImpostos: number; impostos: number; descontos: number; totalPagar: number },
+  calculado: { semImpostos: number; impostos: number; descontos: number; totalPagar: number },
+): boolean {
+  const TOL = 0.01;
+  return (
+    Math.abs(cliente.semImpostos - calculado.semImpostos) <= TOL &&
+    Math.abs(cliente.impostos - calculado.impostos) <= TOL &&
+    Math.abs((cliente.descontos ?? 0) - calculado.descontos) <= TOL &&
+    Math.abs(cliente.totalPagar - calculado.totalPagar) <= TOL
+  );
+}
+
+
 
 async function gerarNumeroFatura(
   tx: any,
@@ -92,7 +159,7 @@ export const CreateFatura = async (app: FastifyInstance) => {
           cliente,
           empresa,
           itens,
-          totais,
+          totais: totaisCliente,
           formaPagamento,
           observacoes,
           operador,
@@ -117,6 +184,47 @@ export const CreateFatura = async (app: FastifyInstance) => {
           return res.status(400).send({
             success: false,
             message: "Não há caixa aberto. Abra um caixa antes de vender.",
+          });
+        }
+
+           let calculado;
+        try {
+          calculado = recalcularTotais(itens);
+        } catch (err: any) {
+          return res.status(400).send({
+            success: false,
+            message: err.message || "Erro ao calcular totais dos itens",
+          });
+        }
+
+        if (!totaisBatem(totaisCliente, calculado)) {
+          logger.error({
+            action: "Criar Fatura - Totais divergentes",
+            user,
+            user_id: userId,
+            details: `Totais do cliente: ${JSON.stringify(totaisCliente)} | Calculado: ${JSON.stringify({
+              semImpostos: calculado.semImpostos,
+              impostos: calculado.impostos,
+              descontos: calculado.descontos,
+              totalPagar: calculado.totalPagar,
+            })}`,
+            ip,
+            resource: "faturas",
+          });
+
+           return res.status(400).send({
+            success: false,
+            message:
+              "Os totais enviados não correspondem ao cálculo do servidor. Fatura recusada.",
+            details: {
+              cliente: totaisCliente,
+              servidor: {
+                semImpostos: calculado.semImpostos,
+                impostos: calculado.impostos,
+                descontos: calculado.descontos,
+                totalPagar: calculado.totalPagar,
+              },
+            },
           });
         }
 
@@ -145,10 +253,12 @@ export const CreateFatura = async (app: FastifyInstance) => {
               empresaEndereco: empresa.endereco,
               empresaTelefone: empresa.telefone,
               empresaEmail: empresa.email,
-              subtotal: totais.semImpostos,
-              impostos: totais.impostos,
-              descontos: totais.descontos || 0,
-              totalPagar: totais.totalPagar,
+
+              subtotal: calculado.semImpostos,
+              impostos: calculado.impostos,
+              descontos: calculado.descontos,
+              totalPagar: calculado.totalPagar,
+
               operador,
               operadorId,
               formaPagamento,
@@ -159,16 +269,16 @@ export const CreateFatura = async (app: FastifyInstance) => {
               qrCodeData,
               caixaId: caixaAberto.id,
               itens: {
-                create: itens.map((item) => ({
+                create: calculado.itensCalculados.map((item) => ({
                   id: randomUUID(),
-                  codigo: item.codigo || "-",
+                  codigo: item.codigo,
                   descricao: item.descricao,
                   quantidade: item.quantidade,
                   precoUnitario: item.precoUnitario,
-                  desconto: item.desconto || 0,
+                  desconto: item.desconto,
                   impostos: item.imposto,
                   total: item.total,
-                  taxaIVA: item.taxaIVA || 14,
+                  taxaIVA: item.taxaIVA,
                 })),
               },
             },
@@ -182,13 +292,13 @@ export const CreateFatura = async (app: FastifyInstance) => {
           action: "Criar Fatura",
           user,
           user_id: userId,
-          details: `Fatura criada: ${fatura.numero} - Total: ${totais.totalPagar} AOA`,
+          details: `Fatura criada: ${fatura.numero} - Total: ${calculado.totalPagar} AOA`,
           ip,
           resource: "faturas",
           resource_id: fatura.id_fatura,
           new_value: JSON.stringify({
             numero: fatura.numero,
-            totalPagar: totais.totalPagar,
+            totalPagar: calculado.totalPagar,
           }),
           duration,
         });
