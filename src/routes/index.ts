@@ -21,6 +21,7 @@ import { StockRoutes } from "./Stock";
 import { SmsRoutes } from "./sms.routes";
 import { UserRoutes } from "./User";
 import { VendaRoutes } from "./Venda";
+import { GetInventario } from "./Inventario/get";
 
 export async function Routes(app: FastifyInstance) { 
     app.register(AuthRoutes);
@@ -34,6 +35,7 @@ export async function Routes(app: FastifyInstance) {
     app.register(FormulasRoutes);
     app.register(FornecedoresRoutes);
     app.register(InventarioRoutes);
+    app.register(GetInventario);
     app.register(LogsRoutes);
     app.register(MateriasPrimasRoutes);
     app.register(NotificationRoutes);
