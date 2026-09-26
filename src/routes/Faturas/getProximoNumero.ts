@@ -23,22 +23,13 @@ export const GetProximoNumero = async (app: FastifyInstance) => {
         const mesFormatado = mes.toString().padStart(2, "0");
         const prefixo = `FR 000AB.${ano}/${mesFormatado}`;
 
-        const ultimaFatura = await prisma.faturas.findFirst({
+        const serie = await prisma.series.findUnique({
           where: {
-            numero: { startsWith: prefixo },
+            tipo_ano_mes: { tipo: "FR", ano, mes },
           },
-          orderBy: { numero: "desc" },
-          select: { numero: true },
         });
 
-        let proximo = 1;
-        if (ultimaFatura) {
-          const match = ultimaFatura.numero.match(/(\d{5})$/);
-          if (match) {
-            proximo = parseInt(match[1], 10) + 1;
-          }
-        }
-
+        const proximo = (serie?.ultimo ?? 0) + 1;
         const numeroSequencial = proximo.toString().padStart(5, "0");
         const numeroCompleto = `${prefixo}${numeroSequencial}`;
 
