@@ -12,5 +12,5 @@ export async function FornecedoresRoutes(app: FastifyInstance) {
     app.register(GetFornecedorById);
     app.register(UpdateFornecedor);
     app.register(DeleteFornecedor);
-    app.register(CreatePedidoCompra);
+    //app.register(CreatePedidoCompra);
 }
