@@ -58,6 +58,7 @@ export const Login = async (app: FastifyInstance) => {
 
       } catch (error: any) {
         const duration = Date.now() - startTime;
+        console.log(error)
         return reply.status(500).send({ error: 'Erro interno do servidor' });
       }
     });
