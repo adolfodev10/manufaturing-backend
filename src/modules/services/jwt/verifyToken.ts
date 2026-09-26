@@ -9,7 +9,7 @@ export async function verifyToken(token: string) {
     console.error("Falha ao verificar token:", {
       message: err.message,
       name: err.name,
-      secretDefined: !!JWT_TOKEN,
+      secretDefined: Boolean(process.env.JWT_SECRET),
       secretLength: JWT_TOKEN?.length,
     });
     return null;
