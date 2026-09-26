@@ -407,6 +407,16 @@ model produtosExpirados {
   @@map("produtosExpirados")
 }
 
+model Series {
+  id       String @id @default(uuid())
+  tipo     String 
+  ano      Int
+  mes      Int
+  ultimo   Int    @default(0)
+  prefixo  String
+  @@unique([tipo, ano, mes])
+}
+
 
 model Producoes {
   id             String   @id @default(uuid())
