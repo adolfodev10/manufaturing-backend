@@ -93,6 +93,7 @@ import { DeleteCategoria } from "./routes/Categorias/delete";
 import { GetInventario } from "./routes/Inventario/get";
 import { InventarioRoutes } from "./routes/Inventario";
 import { CancelarFatura } from "./routes/Faturas/cancelar";
+import { EmitirFatura } from "./routes/Faturas/emitir";
 
 
 const app = fastify;
@@ -229,6 +230,7 @@ async function start() {
   await app.register(UpdateFatura);
   await app.register(GetFaturaByOperador);
   await app.register(GetProximoNumero);
+  await app.register(EmitirFatura);
   await app.register(CancelarFatura);
 
   //Perfil
