@@ -19,6 +19,7 @@ export const CreateUser = async (app: FastifyInstance) => {
         async (req, res) => {
             const { name, email, phone_number, avatar, born, role } = req.body;
 
+            console.log("🔍 Buscando por:", { email, phone_number });
             const userExists = await prisma.users.findFirst({
                 where: {
                     OR: [
@@ -26,12 +27,18 @@ export const CreateUser = async (app: FastifyInstance) => {
                         ...(phone_number ? [{ phone_number }] : [])
                     ]
                 }
-            })
+            });
+
+            console.log("🔍 userExists:", userExists);
 
             if (userExists) {
+                const isEmailConflict = userExists.email === email;
+
                 return res.status(400).send({
-                    error: 'Email or Phone Number already exists',
-                    field: userExists.email === email ? 'email' : 'phone_number'
+                    error:isEmailConflict
+                    ? "Este email já está em uso"
+                    : "Este número de telefone já está em uso",
+                    field: isEmailConflict ? 'email' : 'phone_number'
                 });
             }
 
