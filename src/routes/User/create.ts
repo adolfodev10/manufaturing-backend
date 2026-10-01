@@ -23,7 +23,7 @@ export const CreateUser = async (app: FastifyInstance) => {
                 where: {
                     OR: [
                         { email },
-                        { phone_number: phone_number || undefined }
+                        ...(phone_number ? [{ phone_number }] : [])
                     ]
                 }
             })
