@@ -94,6 +94,7 @@ import { GetInventario } from "./routes/Inventario/get";
 import { InventarioRoutes } from "./routes/Inventario";
 import { CancelarFatura } from "./routes/Faturas/cancelar";
 import { EmitirFatura } from "./routes/Faturas/emitir";
+import { ChangePassword } from "./routes/Auth/change-password";
 
 
 const app = fastify;
@@ -151,6 +152,7 @@ async function start() {
   await app.register(ValidationToken);
   await app.register(ForgotPassword);
   await app.register(ResetPassword);
+  await app.register(ChangePassword);
 
 
   //User

@@ -3,6 +3,8 @@ import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { createUserSchema } from "../../modules/validations/user/create";
 import { prisma } from "../../lib/prismaclient";
 import { hashPassword } from "../../modules/services/bcrypt/hashPassword";
+import { generateTemporaryPassword } from "../../modules/services/api/auth/generatePassword";
+import { sendWelcomeEmail } from "../../lib/mailer";
 
 
 type Role = "OPERADOR" | "GERENTE" | "ADMINISTRADOR"
@@ -15,7 +17,7 @@ export const CreateUser = async (app: FastifyInstance) => {
         },
     },
         async (req, res) => {
-            const { name, email, senha, phone_number, avatar, born, role, user_status } = req.body;
+            const { name, email, phone_number, avatar, born, role } = req.body;
 
             const userExists = await prisma.users.findFirst({
                 where: {
@@ -33,7 +35,6 @@ export const CreateUser = async (app: FastifyInstance) => {
                 });
             }
 
-            const hashedPassword = await hashPassword(senha);
             const validRoles: Role[] = ["OPERADOR", "GERENTE", "ADMINISTRADOR"];
 
             let userRole: Role = "OPERADOR";
@@ -58,6 +59,10 @@ export const CreateUser = async (app: FastifyInstance) => {
                     return res.status(400).send({ error: "Data de nascimento inválida" });
                 }
 
+                const temporaryPassword = generateTemporaryPassword(10);
+                const hashedPassword = await hashPassword(temporaryPassword);
+                const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
                 const user = await prisma.users.create({
                     data: {
                         name,
@@ -67,7 +72,9 @@ export const CreateUser = async (app: FastifyInstance) => {
                         avatar: avatar || null,
                         born: bornDate,
                         role: userRole,
-                        user_status: "ACTIVO",
+                        user_status: "PENDENTE",
+                        must_change_password: true,
+                        password_expires_at: expiresAt,
                         created_at: new Date(),
                         updated_at: new Date(),
                     },
@@ -82,11 +89,30 @@ export const CreateUser = async (app: FastifyInstance) => {
                     }
                 });
 
+                let emailSent = false;
+                let emailError: string | null = null;
+
+                try {
+                    await sendWelcomeEmail({
+                        to: email,
+                        name,
+                        password: temporaryPassword,
+                        role: userRole,
+                        expiresAt,
+                    });
+                    emailSent = true;
+                } catch (err) {
+                    emailError = err instanceof Error ? err.message : "Erro desconhecido";
+                    console.error("Erro ao enviar email de boas-vindas:", emailError);
+                }
+
                 const { senha: _, ...userWithoutPassword } = user;
 
                 return res.status(201).send({
                     success: true,
-                    messge: "Usuário criado com sucesso",
+                    message: emailSent ? "Usuário criado com sucesso" : "Usuário criado com sucesso, mas houve um erro ao enviar o email de boas-vindas",
+                    emailSent,
+                    emailError,
                     user: userWithoutPassword
                 });
             }
@@ -97,6 +123,6 @@ export const CreateUser = async (app: FastifyInstance) => {
                     details: process.env.NODE_ENV === 'development' ? error : undefined
                 });
             }
-        }
+        },
     );
-} 
+}; 

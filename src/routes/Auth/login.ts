@@ -52,6 +52,7 @@ export const Login = async (app: FastifyInstance) => {
           phone_number: user.phone_number,
           born: user.born,
           role: user.role,
+          must_change_password: user.must_change_password,
         };
 
         return { user: userWithoutPassword, token };

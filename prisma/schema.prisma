@@ -2,31 +2,34 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// datasource db {
-//   provider = "mysql"
-//   url      = env("DATABASE_URL")
-// }
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
 model Users {
-  id_user       String         @id @default(uuid())
-  name          String
-  email         String         @unique(map: "Users_email_key")
-  phone_number  String?        @unique(map: "Users_phone_number_key")
-  senha         String
-  avatar        String?
-  born          DateTime
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
-  user_status   UserStatus     @default(ACTIVO)
-  role          Role           @default(OPERADOR)
-  perfis        UserPerfil[]
-  notifications Notification[]
-  venda         venda[]
-  Producoes     Producoes[]
+  id_user              String         @id @default(uuid())
+  name                 String
+  email                String         @unique(map: "Users_email_key")
+  phone_number         String?        @unique(map: "Users_phone_number_key")
+  senha                String
+  avatar               String?
+  born                 DateTime
+  created_at           DateTime       @default(now())
+  updated_at           DateTime       @updatedAt
+  user_status          UserStatus     @default(PENDENTE)
+  role                 Role           @default(OPERADOR)
+  perfis               UserPerfil[]
+  notifications        Notification[]
+  venda                venda[]
+  Producoes            Producoes[]
+  must_change_password Boolean        @default(false)
+  password_expires_at  DateTime?
 
   @@map("users")
 }
@@ -220,15 +223,16 @@ model system_config {
 
   @@map("system_config")
 }
+
 model configuracoes {
-  id    String  @id  @default(uuid())
-  chave String    @unique
-  valor   Json
-  categoria   String
-  descricao  String?
+  id             String   @id @default(uuid())
+  chave          String   @unique
+  valor          Json
+  categoria      String
+  descricao      String?
   atualizado_por String?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
   @@index([categoria])
   @@map("configuracoes")
@@ -336,9 +340,9 @@ model products {
   categoriaId String?    @map("categoria_id")
   categoria   Categoria? @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
 
-  dividas   dividas[]
-  Producoes Producoes[]
-  Formulas  Formulas[]
+  dividas    dividas[]
+  Producoes  Producoes[]
+  Formulas   Formulas[]
   movimentos movimentos_estoque[]
 
   @@index([categoriaId])
@@ -408,15 +412,15 @@ model produtosExpirados {
 }
 
 model Series {
-  id       String @id @default(uuid())
-  tipo     String 
-  ano      Int
-  mes      Int
-  ultimo   Int    @default(0)
-  prefixo  String
+  id      String @id @default(uuid())
+  tipo    String
+  ano     Int
+  mes     Int
+  ultimo  Int    @default(0)
+  prefixo String
+
   @@unique([tipo, ano, mes])
 }
-
 
 model Producoes {
   id             String   @id @default(uuid())
@@ -506,7 +510,7 @@ model FormulaItens {
 }
 
 model movimentos_estoque {
-  id                String          @id @default(uuid())
+  id                String         @id @default(uuid())
   produto_id        String
   tipo              tipo_movimento
   quantidade        Int
@@ -516,9 +520,9 @@ model movimentos_estoque {
   referencia_id     String?
   referencia_tipo   String?
   usuario_id        String
-  created_at        DateTime        @default(now())
+  created_at        DateTime       @default(now())
 
-  produto           products        @relation(fields: [produto_id], references: [id_product], onDelete: Cascade)
+  produto products @relation(fields: [produto_id], references: [id_product], onDelete: Cascade)
 
   @@index([produto_id, created_at])
   @@index([tipo, created_at])
@@ -537,11 +541,11 @@ model inventarios {
   total_itens       Int               @default(0)
   itens_corretos    Int               @default(0)
   itens_divergentes Int               @default(0)
-  valor_divergencia Decimal           @db.Decimal(15, 2) @default(0)
+  valor_divergencia Decimal           @default(0) @db.Decimal(15, 2)
   created_at        DateTime          @default(now())
   updated_at        DateTime          @updatedAt
 
-  itens             inventario_itens[]
+  itens inventario_itens[]
 
   @@map("inventarios")
 }
@@ -559,7 +563,7 @@ model inventario_itens {
   observacao         String?
   created_at         DateTime @default(now())
 
-  inventario         inventarios @relation(fields: [inventario_id], references: [id], onDelete: Cascade)
+  inventario inventarios @relation(fields: [inventario_id], references: [id], onDelete: Cascade)
 
   @@unique([inventario_id, produto_id])
   @@map("inventario_itens")
@@ -591,6 +595,7 @@ enum Role {
 enum UserStatus {
   ACTIVO
   INATIVO
+  PENDENTE
 }
 
 enum venda_methodPayment {
