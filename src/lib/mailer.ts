@@ -1,7 +1,3 @@
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 interface SendWelcomeEmailParams {
   to: string;
   name: string;
@@ -22,11 +18,14 @@ export async function sendWelcomeEmail({
     timeStyle: "short",
   });
 
-  const { data, error } = await resend.emails.send({
-    from: "Sistema Eko <onboarding@resend.dev>",
-    to,
+  const body = {
+    sender: {
+      name: "Sistema Eko",
+      email: process.env.BREVO_SENDER_EMAIL,
+    },
+    to: [{ email: to, name }],
     subject: "Bem-vindo ao Sistema — Credenciais de Acesso",
-    html: `
+    htmlContent: `
       <!DOCTYPE html>
       <html>
         <head><meta charset="utf-8" /></head>
@@ -63,12 +62,25 @@ export async function sendWelcomeEmail({
         </body>
       </html>
     `,
+  };
+
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "api-key": process.env.BREVO_API_KEY || "",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
   });
 
-  if (error) {
-    console.error("❌ Erro ao enviar email via Resend:", error);
-    throw new Error(error.message);
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("❌ Erro ao enviar email via Brevo:", errorText);
+    throw new Error(`Falha ao enviar email: ${response.status} ${errorText}`);
   }
 
-  console.log("✅ Email enviado via Resend:", data?.id);
+  const data = (await response.json()) as { messageId?: string };
+  console.log("✅ Email enviado via Brevo:", data.messageId);
+  return data;
 }
