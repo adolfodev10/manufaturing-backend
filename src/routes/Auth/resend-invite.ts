@@ -73,7 +73,7 @@ export const ResendInvite = async (app: FastifyInstance) => {
       } catch (error: any) {
         console.error("❌ Erro ao enviar email:", error);
         return reply.status(500).send({
-          message: "Erro ao enviar email. Verifique as credenciais SMTP.",
+          message: "Erro ao enviar email. Tente novamente mais tarde.",
         });
       }
     },
