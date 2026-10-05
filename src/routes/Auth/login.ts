@@ -24,7 +24,7 @@ export const Login = async (app: FastifyInstance) => {
         const user = await prisma.users.findFirst({
           where: {
             email,
-            user_status: "ACTIVO"
+            user_status: { in: ["ACTIVO", "PENDENTE"] },
           },
         });
 
@@ -36,6 +36,10 @@ export const Login = async (app: FastifyInstance) => {
 
         if (!isValid) {
           return reply.status(401).send({ error: 'Credenciais inválidas' });
+        }
+
+        if (user.user_status === "INATIVO") {
+          return reply.status(403).send({ error: 'Conta desativada. Contacte o administrador.' });
         }
 
         const token = await generateToken({
