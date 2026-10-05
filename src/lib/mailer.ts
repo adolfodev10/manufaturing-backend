@@ -1,25 +1,6 @@
-import nodemailer from "nodemailer";
-import dns from "node:dns";
+import { Resend } from "resend";
 
-
-dns.setDefaultResultOrder("ipv4first");
-const port = Number(process.env.SMTP_PORT) || 465;
-
-export const mailer = nodemailer.createTransport({
-  host: "74.125.203.108",
-  port,
-  secure: port === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    servername: "smtp.gmail.com",
-  },
-  connectionTimeout: 15000,
-  greetingTimeout: 15000,
-  socketTimeout: 20000,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface SendWelcomeEmailParams {
   to: string;
@@ -41,8 +22,8 @@ export async function sendWelcomeEmail({
     timeStyle: "short",
   });
 
-  await mailer.sendMail({
-    from: process.env.SMTP_FROM,
+  const { data, error } = await resend.emails.send({
+    from: "Sistema Eko <onboarding@resend.dev>",
     to,
     subject: "Bem-vindo ao Sistema — Credenciais de Acesso",
     html: `
@@ -83,4 +64,11 @@ export async function sendWelcomeEmail({
       </html>
     `,
   });
+
+  if (error) {
+    console.error("❌ Erro ao enviar email via Resend:", error);
+    throw new Error(error.message);
+  }
+
+  console.log("✅ Email enviado via Resend:", data?.id);
 }
