@@ -60,6 +60,8 @@ export const CreateVenda = async (app: FastifyInstance) => {
                     updated_at
                 } = req.body;
 
+                const { caixa_id, armazem_id, cliente_id } = req.body as any;
+
                 const venda = await prisma.venda.create({
                     data: {
                         name_product: name_product ?? "",
@@ -68,10 +70,13 @@ export const CreateVenda = async (app: FastifyInstance) => {
                         methodPayment,
                         price: String(price ?? "0"),
                         date_validate: new Date(date_validate),
-                        quantity: quantity ?? "0",
+                        quantity: Number(quantity ?? 0),
                         date_venda: date_venda ? new Date(date_venda) : new Date(),
                         created_at: new Date(created_at),
                         updated_at: new Date(updated_at),
+                        cliente_id,
+                        caixa_id,
+                        armazem_id,
                         id: randomUUID(),
                         user_id: userId
                     },

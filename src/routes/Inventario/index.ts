@@ -166,7 +166,7 @@ export const InventarioRoutes = async (app: FastifyInstance) => {
           select: { price: true },
         });
 
-        const preco = parseFloat(produto?.price || "0");
+        const preco = Number(produto?.price || "0");
         const divergencia = quantidade_contada - item.quantidade_sistema;
         const valorDivergencia = Math.abs(divergencia) * preco;
 
@@ -244,7 +244,7 @@ export const InventarioRoutes = async (app: FastifyInstance) => {
               await tx.products.update({
                 where: { id_product: item.produto_id },
                 data: {
-                  quantity: String(depois),
+                  quantity: Number(depois),
                   updated_at: new Date(),
                   estado: depois === 0 ? "VENDIDO" : "NAO_VENDIDO",
                 },

@@ -83,7 +83,6 @@ export async function fecharCaixa(data: FecharCaixaInput) {
       status: "FECHADA",
       data_fechadura: new Date(),
       valorFinal: data.valorFinal ?? resumo.saldoFinal,
-      totalVendas: resumo.totalVendas,
       totalDinheiro: resumo.totalDinheiro,
       totalTPA: resumo.totalTPA,
       totalFaturas: resumo.totalFaturas,

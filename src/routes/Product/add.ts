@@ -55,7 +55,7 @@ export const AddProductInStock = async (app: FastifyInstance) => {
                         date_validate: date_validate ?? "",
                         price,
                         preco_compra: preco_compra,
-                        quantity,
+                        quantity: Number(quantity ?? 0),
                         updated_at: new Date(),
                         created_at: new Date(),
                         estado: "NAO_VENDIDO",

@@ -127,8 +127,8 @@ export const GetProfitByMonth = async (app: FastifyInstance) => {
                 if (isNaN(date.getTime())) continue;
                 const mes = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
-                const preco = parseFloat(produto.price || "0");
-                const quantidade = parseInt(produto.quantity || "0");
+                const preco = Number(produto.price ?? "0");
+                const quantidade = Number(produto.quantity ?? "0");
                 const lucro = preco * quantidade;
 
                 if (!lucroPorMes[mes]) lucroPorMes[mes] = 0;

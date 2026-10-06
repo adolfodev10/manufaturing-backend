@@ -79,24 +79,24 @@ export const EditProduct = async (app: FastifyInstance) => {
             if (categoriaId && productExists.categoriaId !== categoriaId) {
                 alteracoes.push(`ID Categoria: "${productExists.categoriaId}" → "${categoriaId}"`);
             }
-            if (price && productExists.price !== price) {
+            if (price && Number(productExists.price) !== Number(price)) {
                 alteracoes.push(`Preço da Venda: ${Number(productExists.price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })} → ${Number(price).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}`);
             }
-            if (preco_compra && productExists.preco_compra !== preco_compra) {
-                alteracoes.push(`Preço da Compra: "${productExists.preco_compra}" → "${preco_compra}"`);
+            if (preco_compra && Number(productExists.preco_compra) !== Number(preco_compra)) {
+                alteracoes.push(`Preço da Compra: "${Number(productExists.preco_compra).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}" → "${Number(preco_compra).toLocaleString('pt-PT', { style: 'currency', currency: 'AOA' })}"`);
 
             }
-            if (quantity && productExists.quantity !== quantity) {
-                alteracoes.push(`Quantidade: ${productExists.quantity} → ${quantity}`);
+            if (quantity && Number(productExists.quantity) !== Number(quantity)) {
+                alteracoes.push(`Quantidade: ${Number(productExists.quantity)} → ${Number(quantity)}`);
             }
             const hasDateChange = !!date_validate && (
                 (productExists.date_validate === null && parsedDateValidate !== null) ||
                 (productExists.date_validate !== null && parsedDateValidate === null) ||
-                (productExists.date_validate !== null && parsedDateValidate !== null && productExists.date_validate.getTime() !== parsedDateValidate.getTime())
+                (productExists.date_validate !== null && parsedDateValidate !== null && productExists.date_validate !== String(parsedDateValidate))
             );
 
             if (hasDateChange) {
-                alteracoes.push(`Validade: ${productExists.date_validate ? productExists.date_validate.toISOString().slice(0, 10) : 'Sem validade'} → ${date_validate}`);
+                alteracoes.push(`Validade: ${productExists.date_validate ? productExists.date_validate.slice(0, 10) : 'Sem validade'} → ${date_validate}`);
             }
 
             const product = await prisma.products.update({
@@ -107,8 +107,8 @@ export const EditProduct = async (app: FastifyInstance) => {
                     categoriaId: categoriaId || productExists.categoriaId,
                     price: price || productExists.price,
                     preco_compra: preco_compra || productExists.preco_compra,
-                    quantity: quantity || productExists.quantity,
-                    date_validate: parsedDateValidate ?? productExists.date_validate,
+                    quantity: Number(quantity ?? 0) || Number(productExists.quantity),
+                    date_validate: String(date_validate) ?? productExists.date_validate,
                     updated_at: new Date(),
                 },
             });

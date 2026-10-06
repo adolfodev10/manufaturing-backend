@@ -40,16 +40,15 @@ export const EditStock = async (app: FastifyInstance) => {
             },
             data: {
                 name: name ?? stockExists.name,
-                category : category ?? stockExists.categoriaId,
+                category: category ?? stockExists.categoriaId,
                 categoriaId: categoriaId ?? stockExists.category,
 
                 price: price || stockExists.price,
                 preco_compra: preco_compra ?? stockExists.preco_compra,
 
-                quantity: quantity || stockExists.quantity,
-                date_validate: date_validate
-                ? new Date(date_validate)
-                : stockExists.date_validate,
+                quantity: quantity ? Number(quantity) : stockExists.quantity,
+                date_validate: date_validate ? String(date_validate)
+                    : stockExists.date_validate,
             },
         });
 
